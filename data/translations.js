@@ -27,7 +27,8 @@ window.appTranslations = {
     detailsTypes: { fr: "Types", en: "Types" },
     detailsAbilities: { fr: "Talents", en: "Abilities" },
     detailsNature: { fr: "Nature", en: "Nature" },
-    detailsItem: { fr: "Objet", en: "Item" }
+    detailsItem: { fr: "Objet", en: "Item" },
+    hiddenSets: { fr: "Masqué", en: "Hidden" }
   },
 
   columns: {

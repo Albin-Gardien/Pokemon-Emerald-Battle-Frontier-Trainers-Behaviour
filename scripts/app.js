@@ -80,6 +80,18 @@ function applyLanguage() {
 
         if (!dom.resultsContainer.hidden) {
             renderTrainerTeam(trainer);
+
+            if (currentOpponentSpeciesId) {
+                dom.opponentPokemonSelect.value = currentOpponentSpeciesId;
+
+                const selectedMon = getSelectedPokemonSets(trainer, currentOpponentSpeciesId)[0];
+
+                if (selectedMon) {
+                    dom.opponentPokemonInput.value = getName(selectedMon);
+                }
+
+                renderSelectedPokemonDetails(trainer, currentOpponentSpeciesId);
+            }
         }
     }
 }

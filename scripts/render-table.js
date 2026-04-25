@@ -105,6 +105,10 @@ function getPokemonRowCells(mon, trainer, stats) {
   ];
 }
 
+function getNatureBoostedStat(natureId) {
+    return natureModifiers[natureId]?.up ?? "";
+}
+
 function getEvClass(ev) {
   if (ev >= 255) {
     return "ev-max";
@@ -166,6 +170,10 @@ function createPokemonTableRow(mon, trainer, level) {
     const td = document.createElement("td");
     applyCellPresentation(td, cellData, index, mon);
     row.appendChild(td);
+  });
+
+  row.addEventListener("dblclick", () => {
+    selectSingleSetFromTable(mon);
   });
 
   return row;

@@ -59,10 +59,6 @@ button {
     position: relative;
 }
 
-.autocomplete-field {
-    position: relative;
-}
-
 .suggestions-menu {
     position: absolute;
     top: calc(100% + 4px);
@@ -295,23 +291,23 @@ button {
     background: #d79acb;
 }
 
-.pokemon-table td.nature-boost-atk {
+.pokemon-table td.nature-boost-atk, .nature-badge-atk {
     background: #f5de69;
 }
 
-.pokemon-table td.nature-boost-def {
+.pokemon-table td.nature-boost-def, .nature-badge-def {
     background: #f09a65;
 }
 
-.pokemon-table td.nature-boost-spa {
+.pokemon-table td.nature-boost-spa, .nature-badge-spa {
     background: #66d8f6;
 }
 
-.pokemon-table td.nature-boost-spd {
+.pokemon-table td.nature-boost-spd, .nature-badge-spd {
     background: #899eea;
 }
 
-.pokemon-table td.nature-boost-spe {
+.pokemon-table td.nature-boost-spe, .nature-badge-spe {
     background: #e46cca;
 }
 
@@ -390,6 +386,12 @@ button {
     margin-bottom: 24px;
 }
 
+.detail-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 6px;
+}
+
 .pokemon-detail-card {
     width: 100%;
     min-width: 670px;
@@ -403,6 +405,50 @@ button {
 .pokemon-detail-card h3 {
     margin: 0 0 12px;
     font-size: 2rem;
+}
+
+.pokemon-detail-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pokemon-detail-title input[type="checkbox"],
+.hidden-set-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.hidden-sets-panel {
+    grid-column: 1 / -1;
+    padding: 12px;
+    background: #f5f7f9;
+    border: 1px dashed #cfd6df;
+    border-radius: 10px;
+}
+
+
+.hidden-sets-title {
+    margin: 0 0 8px;
+    font-weight: 700;
+}
+
+.hidden-sets-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.hidden-set-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: white;
+    border: 1px solid #d8dee8;
+    border-radius: 999px;
+    cursor: pointer;
 }
 
 .pokemon-detail-content {
@@ -480,6 +526,48 @@ button {
     padding: 8px 10px;
     font-weight: 700;
     border-radius: 6px;
+}
+
+.move-detail-with-pp {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 8px;
+}
+
+.move-detail-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.move-detail-pp {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.move-pp-controls {
+    display: inline-flex;
+    gap: 4px;
+}
+
+.move-pp-button {
+    width: 26px;
+    height: 24px;
+    padding: 0;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.move-pp-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.move-detail-empty {
+    filter: grayscale(1);
+    opacity: 0.45;
 }
 
 [hidden] {

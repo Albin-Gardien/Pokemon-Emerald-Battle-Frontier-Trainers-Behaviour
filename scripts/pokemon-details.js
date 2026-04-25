@@ -4,6 +4,11 @@
 // Opponent Pokémon selector and Pokémon detail cards
 // -----------------------------------------------------------------------------
 
+let possibleSetIds = new Set();
+let currentOpponentSpeciesId = null;
+
+const movePpState = new Map();
+
 function getSelectedPokemonSets(trainer, speciesId) {
     const level = getSelectedLevel();
 
@@ -30,6 +35,24 @@ function getPokemonDisplayName(mon) {
     return mainName === secondaryName ? mainName : `${mainName} (${secondaryName})`;
 }
 
+function selectSingleSetFromTable(mon) {
+    if (!currentTrainer || !mon) {
+        return;
+    }
+
+    currentOpponentSpeciesId = mon.speciesId;
+    possibleSetIds = new Set([mon.id]);
+
+    dom.opponentPokemonSelect.value = mon.speciesId;
+    dom.opponentPokemonInput.value = getName(mon);
+    dom.opponentPokemonSuggestions.hidden = true;
+
+    dom.opponentPokemonInput.blur();
+    dom.opponentPokemonSelect.blur();
+
+    renderSelectedPokemonDetails(currentTrainer, mon.speciesId);
+}
+
 function selectOpponentPokemonAndRender(mon) {
     if (!currentTrainer || !mon) {
         return;
@@ -39,6 +62,10 @@ function selectOpponentPokemonAndRender(mon) {
     dom.opponentPokemonSelect.value = mon.speciesId;
     dom.opponentPokemonSuggestions.hidden = true;
 
+    dom.opponentPokemonInput.blur();
+    dom.opponentPokemonSelect.blur();
+
+    resetPossibleSetsForPokemon(currentTrainer, mon.speciesId);
     renderSelectedPokemonDetails(currentTrainer, mon.speciesId);
 }
 
@@ -174,14 +201,27 @@ function renderSelectedPokemonDetails(trainer, speciesId) {
     }
 
     const level = getSelectedLevel();
+    const visibleSets = sets.filter((mon) => possibleSetIds.has(mon.id));
+    const hiddenSets = sets.filter((mon) => !possibleSetIds.has(mon.id));
 
-    for (const mon of sets) {
+    for (const mon of visibleSets) {
         const stats = calculateStats(mon, trainer.ivTier, level);
         const card = buildPokemonDetailCard(mon, stats, trainer.ivTier);
         container.appendChild(card);
     }
 
+    if (hiddenSets.length > 0) {
+        container.appendChild(buildHiddenSetsPanel(hiddenSets));
+    }
+
     container.hidden = false;
+}
+
+function resetPossibleSetsForPokemon(trainer, speciesId) {
+    currentOpponentSpeciesId = speciesId;
+    possibleSetIds = new Set(
+        getSelectedPokemonSets(trainer, speciesId).map((mon) => mon.id)
+    );
 }
 
 // ---------------------------------------------------------------------
@@ -209,7 +249,20 @@ function buildPokemonDetailCard(mon, stats, ivTier) {
     card.className = "pokemon-detail-card";
 
     const title = document.createElement("h3");
-    title.textContent = `${getName(mon)} ${mon.setNumber ?? ""}`;
+    title.className = "pokemon-detail-title";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = possibleSetIds.has(mon.id);
+
+    checkbox.addEventListener("change", () => {
+        togglePossibleSet(mon.id);
+    });
+
+    const label = document.createElement("span");
+    label.textContent = `${getName(mon)} ${mon.setNumber ?? ""}`;
+
+    title.append(checkbox, label);
 
     const content = document.createElement("div");
     content.className = "pokemon-detail-content";
@@ -225,25 +278,106 @@ function buildPokemonDetailCard(mon, stats, ivTier) {
 
     const itemSpriteUrl = getItemSpriteUrl(mon.item);
 
-    info.innerHTML = `
-        <p><strong>${translate("columns", "type1").replace(" 1", "s")} :</strong> ${mon.types.map((type) => translateEntity("types", type)).join(" / ")}</p>
-        <p><strong>${translate("columns", "ability1").replace(" 1", "s")} :</strong> ${mon.abilities.map((ability) => translateEntity("abilities", ability)).join(" / ")}</p>
-        <p><strong>${translate("columns", "nature")} :</strong> ${t("natures", mon.nature)}</p>
-        <p class="pokemon-detail-item">
-            <strong>${translate("columns", "item")} :</strong>
-            <span>${t("items", mon.item)}</span>
-            ${itemSpriteUrl ? `<img class="pokemon-detail-item-sprite" src="${itemSpriteUrl}" alt="${t("items", mon.item)}" loading="lazy">` : ""}
-        </p>
-        <p><strong>${translate("columns", "iv")} :</strong> ${ivTier}</p>
-    `;
+    info.append(
+        buildTypeInfoLine(mon.types),
+        buildAbilitiesInfoLine(mon.abilities),
+        buildNatureInfoLine(mon.nature),
+        buildItemInfoLine(mon.item, itemSpriteUrl),
+        buildSimpleInfoLine(translate("columns", "iv"), ivTier)
+    );
 
     const statsBlock = buildStatsBlock(stats);
-    const movesBlock = buildMovesBlock(mon.moves);
+    const movesBlock = buildMovesBlock(mon);
 
     content.append(sprite, info, statsBlock);
     card.append(title, content, movesBlock);
 
     return card;
+}
+
+function buildSimpleInfoLine(label, value) {
+    const line = document.createElement("p");
+
+    const strong = document.createElement("strong");
+    strong.textContent = `${label} : `;
+
+    const text = document.createTextNode(value);
+
+    line.append(strong, text);
+
+    return line;
+}
+
+function buildTypeInfoLine(types) {
+    const line = document.createElement("p");
+
+    const strong = document.createElement("strong");
+    strong.textContent = `${translate("columns", "type1").replace(" 1", "s")} : `;
+
+    line.appendChild(strong);
+
+    types.forEach((typeId, index) => {
+        if (index > 0) {
+            line.appendChild(document.createTextNode(" / "));
+        }
+
+        const badge = document.createElement("span");
+        badge.className = "detail-badge";
+        badge.textContent = translateEntity("types", typeId);
+        applyTypeColor(badge, typeId);
+
+        line.appendChild(badge);
+    });
+
+    return line;
+}
+
+function buildAbilitiesInfoLine(abilities) {
+    return buildSimpleInfoLine(
+        translate("columns", "ability1").replace(" 1", "s"),
+        abilities.map((ability) => translateEntity("abilities", ability)).join(" / ")
+    );
+}
+
+function buildNatureInfoLine(natureId) {
+    const line = document.createElement("p");
+
+    const strong = document.createElement("strong");
+    strong.textContent = `${translate("columns", "nature")} : `;
+
+    const badge = document.createElement("span");
+    badge.className = "detail-badge";
+    badge.textContent = translateEntity("natures", natureId);
+    applyNatureColor(badge, natureId);
+
+    line.append(strong, badge);
+
+    return line;
+}
+
+function buildItemInfoLine(itemId, itemSpriteUrl) {
+    const line = document.createElement("p");
+    line.className = "pokemon-detail-item";
+
+    const strong = document.createElement("strong");
+    strong.textContent = `${translate("columns", "item")} : `;
+
+    const text = document.createElement("span");
+    text.textContent = translateEntity("items", itemId);
+
+    line.append(strong, text);
+
+    if (itemSpriteUrl) {
+        const img = document.createElement("img");
+        img.className = "pokemon-detail-item-sprite";
+        img.src = itemSpriteUrl;
+        img.alt = translateEntity("items", itemId);
+        img.loading = "lazy";
+
+        line.appendChild(img);
+    }
+
+    return line;
 }
 
 function buildStatsBlock(stats) {
@@ -284,6 +418,51 @@ function buildStatsBlock(stats) {
     return statsBlock;
 }
 
+function togglePossibleSet(monId) {
+    if (possibleSetIds.has(monId)) {
+        possibleSetIds.delete(monId);
+    } else {
+        possibleSetIds.add(monId);
+    }
+
+    renderSelectedPokemonDetails(currentTrainer, currentOpponentSpeciesId);
+}
+
+function buildHiddenSetsPanel(hiddenSets) {
+    const panel = document.createElement("div");
+    panel.className = "hidden-sets-panel";
+
+    const title = document.createElement("p");
+    title.className = "hidden-sets-title";
+    title.textContent = translate("ui", "hiddenSets");
+
+    const list = document.createElement("div");
+    list.className = "hidden-sets-list";
+
+    for (const mon of hiddenSets) {
+        const label = document.createElement("label");
+        label.className = "hidden-set-item";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = false;
+
+        checkbox.addEventListener("change", () => {
+            togglePossibleSet(mon.id);
+        });
+
+        const text = document.createElement("span");
+        text.textContent = `${getName(mon)} ${mon.setNumber ?? ""}`;
+
+        label.append(checkbox, text);
+        list.appendChild(label);
+    }
+
+    panel.append(title, list);
+
+    return panel;
+}
+
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
 }
@@ -311,7 +490,33 @@ function getMovePowerPoints(moveId) {
     return window.moves?.[moveId]?.power_points ?? "";
 }
 
-function buildMovesBlock(moveIds) {
+function getMovePpStateKey(mon, moveId, moveIndex) {
+    return `${mon.id}:${moveIndex}:${moveId}`;
+}
+
+function getCurrentMovePp(mon, moveId, moveIndex) {
+    const maxPp = getMovePowerPoints(moveId);
+    const key = getMovePpStateKey(mon, moveId, moveIndex);
+
+    if (!movePpState.has(key)) {
+        movePpState.set(key, maxPp);
+    }
+
+    return movePpState.get(key);
+}
+
+function updateMovePp(mon, moveId, moveIndex, delta) {
+    const maxPp = getMovePowerPoints(moveId);
+    const key = getMovePpStateKey(mon, moveId, moveIndex);
+    const currentPp = getCurrentMovePp(mon, moveId, moveIndex);
+    const nextPp = Math.max(0, Math.min(maxPp, currentPp + delta));
+
+    movePpState.set(key, nextPp);
+
+    renderSelectedPokemonDetails(currentTrainer, currentOpponentSpeciesId);
+}
+
+function buildMovesBlock(mon) {
     const movesBlock = document.createElement("div");
     movesBlock.className = "pokemon-detail-moves";
 
@@ -322,17 +527,53 @@ function buildMovesBlock(moveIds) {
     const grid = document.createElement("div");
     grid.className = "moves-grid";
 
-    for (const moveId of moveIds) {
+    mon.moves.forEach((moveId, moveIndex) => {
+        const maxPp = getMovePowerPoints(moveId);
+        const currentPp = getCurrentMovePp(mon, moveId, moveIndex);
+
         const move = document.createElement("div");
-        move.className = "move-detail";
+        move.className = "move-detail move-detail-with-pp";
+
+        if (currentPp === 0) {
+            move.classList.add("move-detail-empty");
+        }
 
         const moveType = getMoveType(moveId);
         applyTypeColor(move, moveType);
 
-        move.textContent = `${getMoveName(moveId)} — ${getMovePowerPoints(moveId)} ${translate("ui", "pp")}`;
+        const label = document.createElement("span");
+        label.className = "move-detail-name";
+        label.textContent = getMoveName(moveId);
 
+        const pp = document.createElement("span");
+        pp.className = "move-detail-pp";
+        pp.textContent = `${currentPp}/${maxPp}`;
+
+        const minusButton = document.createElement("button");
+        minusButton.type = "button";
+        minusButton.className = "move-pp-button";
+        minusButton.textContent = "−";
+        minusButton.disabled = currentPp <= 0;
+        minusButton.addEventListener("click", () => {
+            updateMovePp(mon, moveId, moveIndex, -1);
+        });
+
+        const plusButton = document.createElement("button");
+        plusButton.type = "button";
+        plusButton.className = "move-pp-button";
+        plusButton.textContent = "+";
+        plusButton.disabled = currentPp >= maxPp;
+        plusButton.addEventListener("click", () => {
+            updateMovePp(mon, moveId, moveIndex, 1);
+        });
+
+        const controls = document.createElement("span");
+        controls.className = "move-pp-controls";
+        controls.append(minusButton, plusButton);
+
+        move.append(label, pp, controls);
         grid.appendChild(move);
-    }
+    });
 
     movesBlock.append(title, grid);
 

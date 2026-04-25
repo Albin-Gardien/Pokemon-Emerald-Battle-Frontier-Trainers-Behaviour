@@ -4,10 +4,6 @@
 // Battle/stat calculation helpers
 // -----------------------------------------------------------------------------
 
-function getNatureBoostedStat(natureId) {
-    return natureModifiers[natureId]?.up ?? "";
-}
-
 // Returns the nature multiplier for one stat.
 function getNatureMultiplier(natureId, statKey) {
     const modifier = natureModifiers[natureId];
