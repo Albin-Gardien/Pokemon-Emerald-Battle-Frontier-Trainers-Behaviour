@@ -55,23 +55,23 @@ const natureModifiers = {
 };
 
 const typeColors = {
-    normal: { bg: "#a8a878", text: "#000" },
-    fire: { bg: "#f08030", text: "#fff" },
-    water: { bg: "#6890f0", text: "#fff" },
-    electric: { bg: "#f8d030", text: "#000" },
-    grass: { bg: "#78c850", text: "#000" },
-    ice: { bg: "#98d8d8", text: "#000" },
-    fighting: { bg: "#c03028", text: "#fff" },
-    poison: { bg: "#a040a0", text: "#fff" },
-    ground: { bg: "#e0c068", text: "#000" },
-    flying: { bg: "#a890f0", text: "#000" },
-    psychic: { bg: "#f85888", text: "#fff" },
-    bug: { bg: "#a8b820", text: "#000" },
-    rock: { bg: "#b8a038", text: "#000" },
-    ghost: { bg: "#705898", text: "#fff" },
-    dragon: { bg: "#7038f8", text: "#fff" },
-    dark: { bg: "#705848", text: "#fff" },
-    steel: { bg: "#b8b8d0", text: "#000" }
+    normal: { bg: "#a8a878" },
+    fire: { bg: "#f08030" },
+    water: { bg: "#6890f0" },
+    electric: { bg: "#f8d030" },
+    grass: { bg: "#78c850" },
+    ice: { bg: "#98d8d8" },
+    fighting: { bg: "#c03028" },
+    poison: { bg: "#a040a0" },
+    ground: { bg: "#e0c068" },
+    flying: { bg: "#a890f0" },
+    psychic: { bg: "#f85888" },
+    bug: { bg: "#a8b820" },
+    rock: { bg: "#b8a038" },
+    ghost: { bg: "#705898" },
+    dragon: { bg: "#7038f8" },
+    dark: { bg: "#705848" },
+    steel: { bg: "#b8b8d0" }
 };
 
 const pokemonSpriteSlugOverrides = {

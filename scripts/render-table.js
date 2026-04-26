@@ -142,11 +142,11 @@ function applyCellPresentation(td, cellData, index, mon) {
     }
 
     if (index === 2) {
-        applyTypeColor(td, mon.types[0]);
+        applyTypeColor(td, mon.types[0], "table");
     }
 
     if (index === 3 && mon.types[1]) {
-        applyTypeColor(td, mon.types[1]);
+        applyTypeColor(td, mon.types[1], "table");
     }
 
     if (index === 7) {
@@ -156,7 +156,7 @@ function applyCellPresentation(td, cellData, index, mon) {
     if (index >= 14 && index <= 17) {
         const moveId = mon.moves[index - 14];
         const moveType = getMoveType(moveId);
-        applyTypeColor(td, moveType);
+        applyTypeColor(td, moveType, "table");
     }
 }
 

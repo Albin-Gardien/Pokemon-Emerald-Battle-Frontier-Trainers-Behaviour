@@ -20,7 +20,7 @@ function getItemSpriteUrl(itemId) {
     return `${itemSpriteBaseUrl}/${path}.png`;
 }
 
-function applyTypeColor(td, typeId) {
+function applyTypeColor(element, typeId, variant = "default") {
     if (!typeId) {
         return;
     }
@@ -28,9 +28,11 @@ function applyTypeColor(td, typeId) {
     if (!colors) {
         return;
     }
-    td.style.backgroundColor = colors.bg;
-    td.style.color = colors.text;
-    td.style.fontWeight = "700";
+    element.style.backgroundColor = colors.bg;
+    element.classList.add("type-colored");
+    if (variant === "table") {
+        element.classList.add("table-type-colored");
+    }
 }
 
 function applyNatureColor(element, natureId) {
