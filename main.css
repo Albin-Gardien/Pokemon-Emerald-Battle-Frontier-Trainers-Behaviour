@@ -32,7 +32,7 @@ h1 {
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }
 
-input,
+input:not([type="checkbox"]):not([type="radio"]),
 select {
     min-height: 36px;
     padding: 6px 10px;
@@ -43,7 +43,7 @@ select {
     box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.18);
 }
 
-input:focus,
+input:not([type="checkbox"]):not([type="radio"]):focus,
 select:focus {
     outline: none;
     background: #ffffff;
@@ -51,6 +51,14 @@ select:focus {
     box-shadow:
         inset 2px 2px 0 rgba(0, 0, 0, 0.18),
         0 0 0 2px rgba(48, 136, 112, 0.25);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    min-height: auto;
+    padding: 0;
+    box-shadow: none;
+    cursor: pointer;
 }
 
 button {
@@ -491,6 +499,7 @@ button:active {
     display: flex;
     align-items: center;
     gap: 10px;
+    cursor: pointer;
 }
 
 .pokemon-detail-title input[type="checkbox"],
@@ -498,6 +507,8 @@ button:active {
     width: 18px;
     height: 18px;
     cursor: pointer;
+    accent-color: #1c88d1;
+    transform: scale(1.15);
 }
 
 .hidden-sets-panel {

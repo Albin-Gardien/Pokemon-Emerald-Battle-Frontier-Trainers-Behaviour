@@ -3,7 +3,6 @@ window.appTranslations = {
     pageTitle: { fr: "Pokémon Émeraude - Dresseurs de la Zone de Combat", en: "Pokémon Emerald Frontier Trainer Viewer" },
     trainerLabel: { fr: "Sélectionnez un dresseur :", en: "Select a trainer:" },
     trainerPlaceholder: { fr: "Nom du dresseur...", en: "Trainer name..." },
-    showButton: { fr: "Afficher", en: "Show" },
     iv: { fr: "IV", en: "IV" },
     pool: { fr: "Liste", en: "Pool" },
     levelLabel: { fr: "Niveau :", en: "Level:" },

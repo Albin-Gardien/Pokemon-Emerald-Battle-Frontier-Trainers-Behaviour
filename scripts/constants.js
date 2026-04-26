@@ -143,8 +143,6 @@ const dom = {
     seriesFilterButton: document.getElementById("series-filter-button"),
     seriesFilterMenu: document.getElementById("series-filter-menu"),
 
-    showButton: document.getElementById("show-button"),
-
     resultsContainer: document.getElementById("results-container"),
     trainerTitle: document.getElementById("trainer-title"),
     trainerInfo: document.getElementById("trainer-info"),

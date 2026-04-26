@@ -228,22 +228,6 @@ function resetPossibleSetsForPokemon(trainer, speciesId) {
 // Initialization and events
 // ---------------------------------------------------------------------
 
-// Handles trainer form submission.
-function handleTrainerSubmit(event) {
-  event.preventDefault();
-
-  const select = dom.trainerSelect;
-  const trainer =
-    findTrainerByInputValue(dom.trainerTextInput.value) ??
-    getTrainerById(select.value);
-
-  if (!trainer) {
-    return;
-  }
-  currentTrainer = trainer;
-  renderTrainerTeam(trainer);
-}
-
 function buildPokemonDetailCard(mon, stats, ivTier) {
     const card = document.createElement("article");
     card.className = "pokemon-detail-card";
@@ -263,6 +247,13 @@ function buildPokemonDetailCard(mon, stats, ivTier) {
     label.textContent = `${getName(mon)} ${mon.setNumber ?? ""}`;
 
     title.append(checkbox, label);
+
+    title.addEventListener("click", (event) => {
+        if (event.target === checkbox) {
+            return;
+        }
+        togglePossibleSet(mon.id);
+    });
 
     const content = document.createElement("div");
     content.className = "pokemon-detail-content";

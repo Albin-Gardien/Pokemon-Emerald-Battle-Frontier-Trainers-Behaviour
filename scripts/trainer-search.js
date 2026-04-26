@@ -212,32 +212,37 @@ function populateSeriesFilter() {
     const menu = dom.seriesFilterMenu;
     menu.replaceChildren();
 
+    menu.appendChild(createSeriesFilterRadio("all", translate("ui", "allSeries")));
+
     for (const serie of frontierSeries) {
-        const label = document.createElement("label");
-        label.className = "series-filter-item";
+        menu.appendChild(createSeriesFilterRadio(serie.id, translate("series", serie.id)));
+    }
 
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.value = serie.id;
-        checkbox.checked = activeSeriesIds.has(serie.id);
+    updateSeriesFilterButtonLabel();
+}
 
-        checkbox.addEventListener("change", () => {
-        if (checkbox.checked) {
-            activeSeriesIds.add(serie.id);
-        } else {
-            activeSeriesIds.delete(serie.id);
-        }
+function createSeriesFilterRadio(value, labelText) {
+    const label = document.createElement("label");
+    label.className = "series-filter-item";
+
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = "series-filter";
+    radio.value = value;
+    radio.checked = selectedSeriesId === value;
+
+    radio.addEventListener("change", () => {
+        selectedSeriesId = value;
 
         populateTrainerSelect();
         syncTrainerInputWithSelect();
         updateSeriesFilterButtonLabel();
-        });
+        closeSeriesFilterMenu();
+    });
 
-        label.append(checkbox, translate("series", serie.id));
-        menu.appendChild(label);
-    }
+    label.append(radio, labelText);
 
-    updateSeriesFilterButtonLabel();
+    return label;
 }
 
 function toggleSeriesFilterMenu() {
@@ -250,16 +255,17 @@ function closeSeriesFilterMenu() {
 }
 
 function updateSeriesFilterButtonLabel() {
-    const button = dom.seriesFilterButton;
-    const count = activeSeriesIds.size;
-
-    button.textContent = count === frontierSeries.length
+    dom.seriesFilterButton.textContent = selectedSeriesId === "all"
         ? translate("ui", "allSeries")
-        : `${count} ${translate("ui", "selectedSeriesCount")}`;
+        : translate("series", selectedSeriesId);
 }
 
 function getActiveSeries() {
-    return frontierSeries.filter((serie) => activeSeriesIds.has(serie.id));
+    if (selectedSeriesId === "all") {
+        return frontierSeries;
+    }
+
+    return frontierSeries.filter((serie) => serie.id === selectedSeriesId);
 }
 
 function getTrainersForSeries(serie) {

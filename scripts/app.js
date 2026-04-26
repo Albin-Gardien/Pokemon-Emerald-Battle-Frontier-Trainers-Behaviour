@@ -6,7 +6,7 @@
 
 let currentLang = "fr";
 let currentTrainer = null;
-let activeSeriesIds = new Set(frontierSeries.map((serie) => serie.id));
+let selectedSeriesId = "all";
 
 // -----------------------------------------------------------------------------
 // Text and translation helpers
@@ -65,7 +65,6 @@ function applyLanguage() {
     dom.opponentPokemonInput.placeholder = translate("ui", "opponentPokemonPlaceholder");
     dom.trainerLabel.textContent = translate("ui", "trainerLabel");
     dom.trainerTextInput.placeholder = translate("ui", "trainerPlaceholder");
-    dom.showButton.textContent = translate("ui", "showButton");
     dom.languageToggle.textContent = currentLang === "fr" ? "EN" : "FR";
 
     const selectedTrainerId = dom.trainerSelect.value;
@@ -113,7 +112,6 @@ function initApp() {
     bindTextToTrainerSelect();
 
     dom.languageToggle.addEventListener("click", toggleLanguage);
-    dom.trainerForm.addEventListener("submit", handleTrainerSubmit);
 
     dom.seriesFilterButton.addEventListener("click", (event) => {
         event.stopPropagation();
@@ -136,6 +134,10 @@ function initApp() {
 
         renderTrainerTeam(currentTrainer);
         dom.selectedPokemonDetails.hidden = true;
+    });
+
+    dom.trainerForm.addEventListener("submit", (event) => {
+        event.preventDefault();
     });
 
     dom.opponentPokemonSelect.addEventListener("change", (event) => {
