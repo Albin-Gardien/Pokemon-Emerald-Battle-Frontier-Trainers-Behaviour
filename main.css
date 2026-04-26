@@ -511,6 +511,101 @@ button:active {
     transform: scale(1.15);
 }
 
+.ai-routine-move-title::-webkit-details-marker {
+    display: none;
+}
+
+.ai-routine-move-title::before {
+    content: "▶";
+    display: inline-block;
+    margin-right: 8px;
+    transition: transform 0.2s ease;
+}
+
+.ai-routine-move[open] .ai-routine-move-title::before {
+    transform: rotate(90deg);
+}
+
+.ai-routine-move-title {
+    display: flex;
+    align-items: center;
+}
+
+.ai-routine-panel {
+    grid-column: 1 / -1;
+    padding: 12px;
+    background: #e4efd8;
+    border: 2px solid #484038;
+    border-radius: 8px;
+    box-shadow:
+        inset 0 -3px 0 rgba(0, 0, 0, 0.12),
+        0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.ai-routine-summary {
+    padding: 8px 10px;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    background: #308870;
+    border-radius: 6px;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+.ai-routine-content {
+    display: grid;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.ai-routine-move {
+    border: 1px solid #b8c8a0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.ai-routine-move-title {
+    display: block;
+    margin: 0;
+    padding: 10px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.ai-routine-move[open] .ai-routine-move-title {
+    border-bottom: 1px solid #b8c8a0;
+}
+
+.ai-routine-list {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    background: #c8d878;
+}
+
+.ai-routine-item {
+    margin: 0;
+    padding: 10px 12px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #000;
+    line-height: 1.4;
+    background: #fff;
+    border: 1px solid #c8d4b0;
+    border-radius: 6px;
+    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+}
+
+.ai-routine-missing {
+    margin: 0;
+    color: #6c6c6c;
+    font-style: italic;
+}
+
 .hidden-sets-panel {
     grid-column: 1 / -1;
     padding: 12px;
@@ -554,7 +649,6 @@ button:active {
     height: 140px;
     object-fit: contain;
     image-rendering: pixelated;
-    background: #9ee7f3;
 }
 
 .pokemon-detail-info p {

@@ -189,6 +189,86 @@ function handleOpponentSuggestionKeyboard(event) {
     }
 }
 
+function getUniqueVisibleMoveIds(visibleSets) {
+    const moveIds = new Set();
+
+    for (const mon of visibleSets) {
+        for (const moveId of mon.moves) {
+            if (moveId) {
+                moveIds.add(moveId);
+            }
+        }
+    }
+
+    return [...moveIds];
+}
+
+function buildAiRoutineAccordion(visibleSets) {
+    const moveIds = getUniqueVisibleMoveIds(visibleSets);
+
+    const details = document.createElement("details");
+    details.className = "ai-routine-panel";
+
+    const summary = document.createElement("summary");
+    summary.className = "ai-routine-summary";
+    summary.textContent = translate("ui", "aiRoutineTitle");
+
+    const content = document.createElement("div");
+    content.className = "ai-routine-content";
+
+    for (const moveId of moveIds) {
+        content.appendChild(buildMoveAiRoutineBlock(moveId));
+    }
+
+    details.append(summary, content);
+
+    return details;
+}
+
+function buildMoveAiRoutineBlock(moveId) {
+    const routineData = window.moveAiRoutines?.[moveId];
+    const routineTexts =
+        routineData?.routine?.[currentLang]
+        ?? routineData?.routine?.en
+        ?? [];
+
+    const details = document.createElement("details");
+    details.className = "ai-routine-move";
+
+    const summary = document.createElement("summary");
+    summary.className = "ai-routine-move-title";
+    summary.textContent = getMoveName(moveId);
+
+    const moveType = getMoveType(moveId);
+    applyTypeColor(summary, moveType);
+
+    details.appendChild(summary);
+
+    if (routineTexts.length === 0) {
+        const missing = document.createElement("p");
+        missing.className = "ai-routine-missing";
+        missing.textContent = translate("ui", "aiRoutineMissingData");
+
+        details.appendChild(missing);
+        return details;
+    }
+
+    const list = document.createElement("div");
+    list.className = "ai-routine-list";
+
+    for (const routineText of routineTexts) {
+        const item = document.createElement("pre");
+        item.className = "ai-routine-item";
+        item.textContent = routineText;
+
+        list.appendChild(item);
+    }
+
+    details.appendChild(list);
+
+    return details;
+}
+
 function renderSelectedPokemonDetails(trainer, speciesId) {
     const container = dom.selectedPokemonDetails;
     const sets = getSelectedPokemonSets(trainer, speciesId);
@@ -208,6 +288,10 @@ function renderSelectedPokemonDetails(trainer, speciesId) {
         const stats = calculateStats(mon, trainer.ivTier, level);
         const card = buildPokemonDetailCard(mon, stats, trainer.ivTier);
         container.appendChild(card);
+    }
+
+    if (visibleSets.length > 0) {
+        container.appendChild(buildAiRoutineAccordion(visibleSets));
     }
 
     if (hiddenSets.length > 0) {
