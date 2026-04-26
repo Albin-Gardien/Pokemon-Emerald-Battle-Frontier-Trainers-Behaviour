@@ -234,6 +234,7 @@ function createSeriesFilterRadio(value, labelText) {
     radio.addEventListener("change", () => {
         selectedSeriesId = value;
 
+        clearTrainerDisplay();
         populateTrainerSelect();
         syncTrainerInputWithSelect();
         updateSeriesFilterButtonLabel();
@@ -258,6 +259,24 @@ function updateSeriesFilterButtonLabel() {
     dom.seriesFilterButton.textContent = selectedSeriesId === "all"
         ? translate("ui", "allSeries")
         : translate("series", selectedSeriesId);
+}
+
+function clearTrainerDisplay() {
+    currentTrainer = null;
+    currentOpponentSpeciesId = null;
+    possibleSetIds.clear();
+
+    dom.resultsContainer.hidden = true;
+    dom.trainerTitle.textContent = "";
+    dom.trainerInfo.textContent = "";
+    dom.pokemonResults.replaceChildren();
+
+    dom.opponentPokemonInput.value = "";
+    dom.opponentPokemonSelect.replaceChildren();
+    dom.opponentSearchContainer.hidden = true;
+
+    dom.selectedPokemonDetails.replaceChildren();
+    dom.selectedPokemonDetails.hidden = true;
 }
 
 function getActiveSeries() {

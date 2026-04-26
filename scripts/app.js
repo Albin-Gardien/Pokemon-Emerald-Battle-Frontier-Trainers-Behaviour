@@ -69,6 +69,7 @@ function applyLanguage() {
 
     const selectedTrainerId = dom.trainerSelect.value;
 
+    populateSeriesFilter();
     updateSeriesFilterButtonLabel();
     populateTrainerSelect(selectedTrainerId);
 
