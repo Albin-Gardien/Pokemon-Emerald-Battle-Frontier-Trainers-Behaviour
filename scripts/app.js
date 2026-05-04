@@ -135,6 +135,7 @@ function initApp() {
 
         resetBattleExclusions();
         renderTrainerTeam(currentTrainer);
+        dom.resultsContainer.classList.remove("has-selected-pokemon");
         dom.selectedPokemonDetails.hidden = true;
     });
 
@@ -144,11 +145,14 @@ function initApp() {
 
     dom.opponentPokemonSelect.addEventListener("change", (event) => {
         if (!currentTrainer || !event.target.value) {
+            currentOpponentSpeciesId = null;
+            possibleSetIds.clear();
             dom.selectedPokemonDetails.hidden = true;
             return;
         }
 
-        renderSelectedPokemonDetails(currentTrainer, event.target.value);
+        const mon = findOpponentPokemonBySpeciesId(currentTrainer, event.target.value);
+        selectOpponentPokemonAndRender(mon);
     });
 
     dom.opponentPokemonInput.addEventListener("input", (event) => {

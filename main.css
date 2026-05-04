@@ -457,14 +457,23 @@ button:active {
     flex-wrap: wrap;
     align-items: center;
     gap: 12px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
+}
+
+.results-container:not(.has-selected-pokemon) .opponent-search-container {
+    padding-bottom: 14px;
+    border-bottom: 2px dashed #c8d878;
 }
 
 .battle-exclusions-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
-    margin: 0 0 16px;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    background: #f0f8e8;
+    border: 1px solid #b8c8a0;
+    border-radius: 8px;
 }
 
 .battle-exclusion-field {

@@ -28,6 +28,13 @@ function findOpponentPokemonByInputValue(trainer, value) {
     );
 }
 
+function findOpponentPokemonBySpeciesId(trainer, speciesId) {
+    const level = getSelectedLevel();
+    const mons = getTrainerMonsForLevel(trainer, level);
+
+    return mons.find((mon) => mon.speciesId === speciesId && !isMonExcluded(mon));
+}
+
 function getPokemonDisplayName(mon) {
     const mainName = getName(mon, currentLang);
     const secondaryName = getName(mon, getOtherLang());
@@ -279,6 +286,7 @@ function renderSelectedPokemonDetails(trainer, speciesId) {
     container.replaceChildren();
 
     if (sets.length === 0) {
+        dom.resultsContainer.classList.remove("has-selected-pokemon");
         container.hidden = true;
         return;
     }
@@ -301,6 +309,7 @@ function renderSelectedPokemonDetails(trainer, speciesId) {
         container.appendChild(buildHiddenSetsPanel(hiddenSets));
     }
 
+    dom.resultsContainer.classList.add("has-selected-pokemon");
     container.hidden = false;
 }
 
