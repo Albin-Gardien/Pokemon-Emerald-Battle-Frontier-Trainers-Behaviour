@@ -460,6 +460,113 @@ button:active {
     margin-bottom: 16px;
 }
 
+.battle-exclusions-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0 0 16px;
+}
+
+.battle-exclusion-field {
+    position: relative;
+    display: flex;
+    flex: 0 1 360px;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 420px;
+}
+
+.multi-select-field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    min-height: 36px;
+    padding: 3px 6px;
+    background: #f8f8f8;
+    border: 2px solid #484038;
+    border-radius: 3px;
+    box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.18);
+}
+
+.multi-select-field input {
+    flex: 1 1 110px;
+    min-width: 90px;
+    min-height: 26px;
+    padding: 0;
+    font-size: 0.95rem;
+    border: 0 !important;
+    background: transparent;
+    box-shadow: none !important;
+}
+
+.multi-select-field input:disabled {
+    cursor: default;
+}
+
+.multi-select-field input:focus {
+    outline: none;
+    box-shadow: none !important;
+}
+
+.multi-select-tags {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.multi-select-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 190px;
+    padding: 2px 6px;
+    font-weight: 700;
+    background: #dce7ff;
+    border: 1px solid #9fb4e8;
+    border-radius: 999px;
+}
+
+.multi-select-tag span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.multi-select-tag-remove {
+    min-height: auto;
+    padding: 0 4px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.multi-select-field-full {
+    flex-wrap: nowrap;
+}
+
+.multi-select-field-full .multi-select-tags {
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+
+.multi-select-field-full .multi-select-tag {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
+}
+
+.pokemon-table tbody tr.pokemon-row-excluded > td {
+    color: #555;
+    opacity: 0.75;
+    filter: grayscale(1);
+}
+
+.pokemon-table tbody tr.pokemon-row-excluded:hover > td {
+    background: inherit;
+    cursor: not-allowed;
+}
+
 .selected-pokemon-details {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 830px));

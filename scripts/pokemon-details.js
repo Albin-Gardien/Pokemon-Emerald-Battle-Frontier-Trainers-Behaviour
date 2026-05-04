@@ -79,6 +79,9 @@ function populateOpponentPokemonSelect(trainer) {
     const uniqueSpecies = [];
 
     for (const mon of mons) {
+        if (isMonExcluded(mon)) {
+            continue;
+        }
         if (!uniqueSpecies.some((existing) => existing.speciesId === mon.speciesId)) {
         uniqueSpecies.push(mon);
         }
@@ -304,7 +307,9 @@ function renderSelectedPokemonDetails(trainer, speciesId) {
 function resetPossibleSetsForPokemon(trainer, speciesId) {
     currentOpponentSpeciesId = speciesId;
     possibleSetIds = new Set(
-        getSelectedPokemonSets(trainer, speciesId).map((mon) => mon.id)
+        getSelectedPokemonSets(trainer, speciesId)
+            .filter((mon) => !isMonExcluded(mon))
+            .map((mon) => mon.id)
     );
 }
 

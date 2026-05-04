@@ -172,7 +172,14 @@ function createPokemonTableRow(mon, trainer, level) {
     row.appendChild(td);
   });
 
+  if (isMonExcluded(mon)) {
+      row.classList.add("pokemon-row-excluded");
+  }
+
   row.addEventListener("dblclick", () => {
+    if (isMonExcluded(mon)) {
+        return;
+    }
     selectSingleSetFromTable(mon);
   });
 
@@ -216,6 +223,7 @@ function renderTrainerTeam(trainer) {
   pokemonTable.append(createPokemonTableHead(), tbody);
   dom.resultsContainer.hidden = false;
   populateOpponentPokemonSelect(trainer);
+  refreshBattleExclusionInterface();
 }
 
 function getTrainerMons(trainer) {
@@ -236,6 +244,7 @@ function selectTrainerAndRender(trainer) {
     }
 
     currentTrainer = trainer;
+    resetBattleExclusions();
 
     dom.trainerTextInput.value = getName(trainer);
     dom.trainerSelect.value = trainer.id;

@@ -133,6 +133,7 @@ function initApp() {
             return;
         }
 
+        resetBattleExclusions();
         renderTrainerTeam(currentTrainer);
         dom.selectedPokemonDetails.hidden = true;
     });
@@ -160,12 +161,38 @@ function initApp() {
         const uniqueSpecies = [];
 
         for (const mon of mons) {
+            if (isMonExcluded(mon)) {
+                continue;
+            }
             if (!uniqueSpecies.some((existing) => existing.speciesId === mon.speciesId)) {
                 uniqueSpecies.push(mon);
             }
         }
 
         populateOpponentPokemonSuggestions(uniqueSpecies, event.target.value);
+    });
+
+    dom.excludedPokemonInput.addEventListener("input", (event) => {
+        populateExcludedPokemonSuggestions(event.target.value);
+    });
+
+    dom.excludedItemInput.addEventListener("input", (event) => {
+        populateExcludedItemSuggestions(event.target.value);
+    });
+
+    dom.excludedPokemonInput.addEventListener("keydown", handleExcludedPokemonSuggestionKeyboard);
+    dom.excludedItemInput.addEventListener("keydown", handleExcludedItemSuggestionKeyboard);
+
+    dom.excludedPokemonInput.addEventListener("blur", () => {
+        setTimeout(() => {
+            dom.excludedPokemonSuggestions.hidden = true;
+        }, 100);
+    });
+
+    dom.excludedItemInput.addEventListener("blur", () => {
+        setTimeout(() => {
+            dom.excludedItemSuggestions.hidden = true;
+        }, 100);
     });
 
     dom.opponentPokemonInput.addEventListener("blur", () => {

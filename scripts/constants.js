@@ -148,6 +148,18 @@ const dom = {
     trainerInfo: document.getElementById("trainer-info"),
     pokemonResults: document.getElementById("pokemon-results"),
 
+    battleExclusionsContainer: document.getElementById("battle-exclusions-container"),
+
+    excludedPokemonLabel: document.getElementById("excluded-pokemon-label"),
+    excludedPokemonInput: document.getElementById("excluded-pokemon-input"),
+    excludedPokemonTags: document.getElementById("excluded-pokemon-tags"),
+    excludedPokemonSuggestions: document.getElementById("excluded-pokemon-suggestions"),
+
+    excludedItemLabel: document.getElementById("excluded-item-label"),
+    excludedItemInput: document.getElementById("excluded-item-input"),
+    excludedItemTags: document.getElementById("excluded-item-tags"),
+    excludedItemSuggestions: document.getElementById("excluded-item-suggestions"),
+
     opponentSearchContainer: document.getElementById("opponent-search-container"),
     opponentPokemonLabel: document.getElementById("opponent-pokemon-label"),
     opponentPokemonInput: document.getElementById("opponent-pokemon-input"),

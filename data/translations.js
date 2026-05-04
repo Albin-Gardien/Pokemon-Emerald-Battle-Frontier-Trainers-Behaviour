@@ -27,12 +27,16 @@ window.appTranslations = {
     detailsAbilities: { fr: "Talents", en: "Abilities" },
     detailsNature: { fr: "Nature", en: "Nature" },
     detailsItem: { fr: "Objet", en: "Item" },
-  aiRoutineTitle: { fr: "Routine de l’IA", en: "AI Behaviour" },
-  aiRoutineMissingData: {
+    aiRoutineTitle: { fr: "Routine de l’IA", en: "AI Behaviour" },
+    aiRoutineMissingData: {
       fr: "Aucune routine renseignée pour cette capacité.",
       en: "No AI routine available for this move."
   },
-    hiddenSets: { fr: "Masqué", en: "Hidden" }
+    hiddenSets: { fr: "Masqué", en: "Hidden" },
+    excludedPokemonLabel: { fr: "Pokémon sortis", en: "Seen Pokémon" },
+    excludedItemLabel: { fr: "Objets sortis", en: "Seen items" },
+    excludedPokemonPlaceholder: { fr: "Chercher un Pokémon...", en: "Search Pokémon..." },
+    excludedItemPlaceholder: { fr: "Chercher un objet...", en: "Search item..." }
   },
 
   columns: {

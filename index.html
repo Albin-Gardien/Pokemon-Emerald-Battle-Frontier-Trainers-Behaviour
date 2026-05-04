@@ -80,6 +80,26 @@
 
         <div id="selected-pokemon-details" class="selected-pokemon-details" hidden></div>
 
+        <div id="battle-exclusions-container" class="battle-exclusions-container" hidden>
+            <div class="battle-exclusion-field">
+                <label id="excluded-pokemon-label" for="excluded-pokemon-input"></label>
+                <div class="multi-select-field">
+                    <div id="excluded-pokemon-tags" class="multi-select-tags"></div>
+                    <input type="text" id="excluded-pokemon-input" autocomplete="off" />
+                </div>
+                <div id="excluded-pokemon-suggestions" class="suggestions-menu" hidden></div>
+            </div>
+
+            <div class="battle-exclusion-field">
+                <label id="excluded-item-label" for="excluded-item-input"></label>
+                <div class="multi-select-field">
+                    <div id="excluded-item-tags" class="multi-select-tags"></div>
+                    <input type="text" id="excluded-item-input" autocomplete="off" />
+                </div>
+                <div id="excluded-item-suggestions" class="suggestions-menu" hidden></div>
+            </div>
+        </div>
+
         <div class="table-wrapper">
             <table id="pokemon-results" class="pokemon-table"></table>
         </div>
@@ -90,6 +110,7 @@
     <script src="scripts/utils.js"></script>
     <script src="scripts/trainer-search.js"></script>
     <script src="scripts/stats-calculations.js"></script>
+    <script src="scripts/battle-exclusions.js"></script>
     <script src="scripts/render-table.js"></script>
     <script src="scripts/pokemon-details.js"></script>
 </body>
