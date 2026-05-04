@@ -1,6 +1,6 @@
 window.appTranslations = {
   ui: {
-    pageTitle: { fr: "Pokémon Émeraude - Dresseurs de la Zone de Combat", en: "Pokémon Emerald Frontier Trainer Viewer" },
+    pageTitle: { fr: "Pokémon Émeraude - Dresseurs de la Zone de Combat", en: "Pokémon Emerald - Frontier Trainer Viewer" },
     trainerLabel: { fr: "Sélectionnez un dresseur :", en: "Select a trainer:" },
     trainerPlaceholder: { fr: "Nom du dresseur...", en: "Trainer name..." },
     iv: { fr: "IV", en: "IV" },

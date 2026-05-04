@@ -36,8 +36,11 @@ function calculateOtherStat(base, iv, ev, level, natureId, statKey) {
 
 // Calculates all displayed stats for one Pokémon set.
 function calculateStats(mon, iv, level) {
+    const hp =
+        mon.speciesId === "shedinja" ? 1 : calculateHpStat(mon.baseStats.hp, iv, mon.evs.hp ?? 0, level);
+
     return {
-        hp: calculateHpStat(mon.baseStats.hp, iv, mon.evs.hp ?? 0, level),
+        hp,
         atk: calculateOtherStat(mon.baseStats.atk, iv, mon.evs.atk ?? 0, level, mon.nature, "atk"),
         def: calculateOtherStat(mon.baseStats.def, iv, mon.evs.def ?? 0, level, mon.nature, "def"),
         spa: calculateOtherStat(mon.baseStats.spa, iv, mon.evs.spa ?? 0, level, mon.nature, "spa"),
