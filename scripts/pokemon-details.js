@@ -1,31 +1,60 @@
 "use strict";
 
-// -----------------------------------------------------------------------------
-// Opponent Pokémon selector and Pokémon detail cards
-// -----------------------------------------------------------------------------
-
-let possibleSetIds = new Set();
-let currentOpponentSpeciesId = null;
-
-const movePpState = new Map();
-
-function getSelectedPokemonSets(trainer, speciesId) {
-    const level = getSelectedLevel();
-
-    return getTrainerMonsForLevel(trainer, level)
-        .filter((mon) => mon.speciesId === speciesId);
+// Selection is indexed by opponent slot; the underlying sets and stats stay Gen 3.
+function getSelectedPokemonSets(speciesId, slotIndex = PRIMARY_OPPONENT_SLOT_INDEX) {
+    const trainerIndex = getTrainerIndexForOpponentSlot(slotIndex);
+    return getCurrentTrainerAvailableMons(trainerIndex)
+        .filter((mon) => mon.speciesId === speciesId && !isMonExcluded(mon, trainerIndex));
 }
 
-function findOpponentPokemonByInputValue(trainer, value) {
-    const normalizedValue = normalizeText(value);
-    const level = getSelectedLevel();
-    const mons = getTrainerMonsForLevel(trainer, level);
+function usesSharedOpponentTeamAcrossSlots() {
+    return battleState.format === "doubles";
+}
 
-    return mons.find((mon) =>
+function getOpponentSlotDom(slotIndex = PRIMARY_OPPONENT_SLOT_INDEX) {
+    return dom.opponentSlots[slotIndex];
+}
+
+function isSpeciesSelectedInOtherOpponentSlot(speciesId, slotIndex) {
+    if (!usesSharedOpponentTeamAcrossSlots()) {
+        return false;
+    }
+
+    return battleState.opponents.some((opponentState, otherSlotIndex) =>
+        otherSlotIndex !== slotIndex && opponentState.speciesId === speciesId
+    );
+}
+
+function getUniqueAvailableOpponentSpecies(slotIndex) {
+    const sourceIndex = getTrainerIndexForOpponentSlot(slotIndex);
+    const mons = getCurrentTrainerAvailableMons(getTrainerIndexForOpponentSlot(slotIndex));
+    const uniqueSpecies = [];
+
+    for (const mon of mons) {
+        if (isMonExcluded(mon, sourceIndex) || isSpeciesSelectedInOtherOpponentSlot(mon.speciesId, slotIndex)) {
+            continue;
+        }
+
+        if (!uniqueSpecies.some((existing) => existing.speciesId === mon.speciesId)) {
+            uniqueSpecies.push(mon);
+        }
+    }
+
+    return uniqueSpecies;
+}
+
+function findOpponentPokemonByInputValue(value, slotIndex = PRIMARY_OPPONENT_SLOT_INDEX) {
+    const normalizedValue = normalizeText(value);
+
+    return getUniqueAvailableOpponentSpecies(slotIndex).find((mon) =>
         normalizeText(getPokemonDisplayName(mon)) === normalizedValue ||
         normalizeText(getName(mon, "fr")) === normalizedValue ||
         normalizeText(getName(mon, "en")) === normalizedValue
     );
+}
+
+function findOpponentPokemonBySpeciesId(speciesId, slotIndex = PRIMARY_OPPONENT_SLOT_INDEX) {
+    return getUniqueAvailableOpponentSpecies(slotIndex).find((mon) => mon.speciesId === speciesId);
 }
 
 function getPokemonDisplayName(mon) {
@@ -35,103 +64,191 @@ function getPokemonDisplayName(mon) {
     return mainName === secondaryName ? mainName : `${mainName} (${secondaryName})`;
 }
 
-function selectSingleSetFromTable(mon) {
-    if (!currentTrainer || !mon) {
+function selectSingleSetFromTable(mon, slotIndex = PRIMARY_OPPONENT_SLOT_INDEX) {
+    if (!hasBattlePokemonSourceForOpponentSlot(slotIndex) || !mon) {
         return;
     }
 
-    currentOpponentSpeciesId = mon.speciesId;
-    possibleSetIds = new Set([mon.id]);
-
-    dom.opponentPokemonSelect.value = mon.speciesId;
-    dom.opponentPokemonInput.value = getName(mon);
-    dom.opponentPokemonSuggestions.hidden = true;
-
-    dom.opponentPokemonInput.blur();
-    dom.opponentPokemonSelect.blur();
-
-    renderSelectedPokemonDetails(currentTrainer, mon.speciesId);
-}
-
-function selectOpponentPokemonAndRender(mon) {
-    if (!currentTrainer || !mon) {
+    if (isSpeciesSelectedInOtherOpponentSlot(mon.speciesId, slotIndex)) {
         return;
     }
 
-    dom.opponentPokemonInput.value = getName(mon);
-    dom.opponentPokemonSelect.value = mon.speciesId;
-    dom.opponentPokemonSuggestions.hidden = true;
+    const opponentState = getOpponentBattleState(slotIndex);
+    const slotDom = getOpponentSlotDom(slotIndex);
+    if (!getSelectedPokemonSets(mon.speciesId, slotIndex).some((set) => set.id === mon.id)) {
+        return;
+    }
+    if (opponentState.speciesId !== mon.speciesId) { resetOpponentBattleState(slotIndex); }
+    opponentState.speciesId = mon.speciesId;
+    opponentState.possibleSetIds = new Set([mon.id]);
 
-    dom.opponentPokemonInput.blur();
-    dom.opponentPokemonSelect.blur();
+    slotDom.select.value = mon.speciesId;
+    slotDom.input.value = getName(mon);
+    slotDom.suggestions.hidden = true;
 
-    resetPossibleSetsForPokemon(currentTrainer, mon.speciesId);
-    renderSelectedPokemonDetails(currentTrainer, mon.speciesId);
-}
+    renderSelectedPokemonDetails(mon.speciesId, slotIndex);
+    updateSearchClearButtons();
+    updateTableSelectionHints();
 
-function populateOpponentPokemonSelect(trainer) {
-    const container = dom.opponentSearchContainer;
-    const input = dom.opponentPokemonInput;
-    const select = dom.opponentPokemonSelect;
-    const level = getSelectedLevel();
-    const mons = getTrainerMonsForLevel(trainer, level);
+    if (usesSharedOpponentTeamAcrossSlots()) {
+        const otherSlotIndex = slotIndex === 0 ? 1 : 0;
 
-    const uniqueSpecies = [];
+        populateOpponentPokemonSelect(otherSlotIndex);
 
-    for (const mon of mons) {
-        if (!uniqueSpecies.some((existing) => existing.speciesId === mon.speciesId)) {
-        uniqueSpecies.push(mon);
+        if (slotIndex === 0 && !getOpponentBattleState(1).speciesId) {
+            battleState.activeOpponentSlotIndex = 1;
+            updateTableSelectionHints();
         }
     }
-    populateOpponentPokemonSuggestions(uniqueSpecies, "");
+}
 
-    select.replaceChildren();
-    select.appendChild(createPlaceholderOption(translate("ui", "opponentPokemonSelectPlaceholder")));
+function selectOpponentPokemonAndRender(mon, slotIndex = PRIMARY_OPPONENT_SLOT_INDEX) {
+    if (!hasBattlePokemonSourceForOpponentSlot(slotIndex) || !mon) {
+        return;
+    }
+
+    if (isSpeciesSelectedInOtherOpponentSlot(mon.speciesId, slotIndex)) {
+        return;
+    }
+
+    const slotDom = getOpponentSlotDom(slotIndex);
+
+    battleState.activeOpponentSlotIndex = slotIndex;
+
+    slotDom.input.value = getName(mon);
+    slotDom.select.value = mon.speciesId;
+    slotDom.suggestions.hidden = true;
+
+    slotDom.input.blur();
+    slotDom.select.blur();
+
+    if (getOpponentBattleState(slotIndex).speciesId !== mon.speciesId) {
+        resetOpponentBattleState(slotIndex);
+        resetPossibleSetsForPokemon(mon.speciesId, slotIndex);
+    }
+    renderSelectedPokemonDetails(mon.speciesId, slotIndex);
+    updateSearchClearButtons();
+    updateTableSelectionHints();
+
+    if (usesSharedOpponentTeamAcrossSlots()) {
+        populateOpponentPokemonSelect(slotIndex === 0 ? 1 : 0);
+    }
+}
+
+function populateOpponentPokemonSelect(slotIndex = PRIMARY_OPPONENT_SLOT_INDEX) {
+    const slotDom = getOpponentSlotDom(slotIndex);
+    const opponentState = getOpponentBattleState(slotIndex);
+    const uniqueSpecies = getUniqueAvailableOpponentSpecies(slotIndex);
+
+    slotDom.select.replaceChildren();
+    slotDom.select.appendChild(createPlaceholderOption(translate("ui", "opponentPokemonSelectPlaceholder")));
+    slotDom.suggestions.hidden = true;
 
     for (const mon of uniqueSpecies) {
         const option = document.createElement("option");
         option.value = mon.speciesId;
-
-        const mainName = getName(mon, currentLang);
-        const secondaryName = getName(mon, getOtherLang());
-
-        option.textContent =
-        mainName === secondaryName ? mainName : `${mainName} (${secondaryName})`;
-
-        select.appendChild(option);
+        option.textContent = getPokemonDisplayName(mon);
+        slotDom.select.appendChild(option);
     }
 
-    input.value = "";
-    container.hidden = false;
-    dom.selectedPokemonDetails.hidden = true;
+    const selectedMon = uniqueSpecies.find((mon) => mon.speciesId === opponentState.speciesId);
+
+    if (selectedMon) {
+        slotDom.select.value = selectedMon.speciesId;
+        slotDom.input.value = getName(selectedMon);
+        return;
+    }
+
+    if (opponentState.speciesId) {
+        resetOpponentBattleState(slotIndex);
+    }
+
+    slotDom.input.value = "";
+    slotDom.details.replaceChildren();
+    slotDom.details.hidden = true;
 }
 
-function populateOpponentPokemonSuggestions(uniqueSpecies, search = "") {
-    const menu = dom.opponentPokemonSuggestions;
-    menu.replaceChildren();
+function refreshOpponentBattleInterface() {
+    const opponentCount = getActiveOpponentCount();
+    let visibleOpponentCount = 0;
 
+    dom.opponentSlots.forEach((slotDom, slotIndex) => {
+        const isActive = slotIndex < opponentCount && hasBattlePokemonSourceForOpponentSlot(slotIndex);
+
+        slotDom.container.hidden = !isActive;
+
+        if (isActive) {
+            visibleOpponentCount++;
+            populateOpponentPokemonSelect(slotIndex);
+        } else {
+            slotDom.input.value = "";
+            slotDom.select.replaceChildren();
+            slotDom.suggestions.replaceChildren();
+            slotDom.suggestions.hidden = true;
+        }
+    });
+
+    dom.resultsContainer.classList.toggle("is-doubles", visibleOpponentCount === 2);
+    dom.opponentSearchContainer.hidden = visibleOpponentCount === 0;
+}
+
+function clearOpponentPokemonSelection(slotIndex, refreshOtherSlot = true) {
+    const slotDom = getOpponentSlotDom(slotIndex);
+
+    resetOpponentBattleState(slotIndex);
+
+    slotDom.input.value = "";
+    slotDom.select.value = "";
+    slotDom.suggestions.hidden = true;
+    slotDom.details.replaceChildren();
+    slotDom.details.hidden = true;
+
+    updateSelectedPokemonPresence();
+    updateSearchClearButtons();
+
+    if (refreshOtherSlot && usesSharedOpponentTeamAcrossSlots()) {
+        populateOpponentPokemonSelect(slotIndex === 0 ? 1 : 0);
+    }
+}
+
+function updateSelectedPokemonPresence() {
+    const hasSelectedPokemon = battleState.opponents
+        .slice(0, getActiveOpponentCount())
+        .some((opponentState) => opponentState.speciesId);
+
+    dom.resultsContainer.classList.toggle("has-selected-pokemon", hasSelectedPokemon);
+}
+
+function populateOpponentPokemonSuggestions(search = "", slotIndex = PRIMARY_OPPONENT_SLOT_INDEX) {
+    const slotDom = getOpponentSlotDom(slotIndex);
+    const opponentState = getOpponentBattleState(slotIndex);
+
+    slotDom.suggestions.replaceChildren();
+
+    opponentState.suggestionMatches = [];
+    opponentState.suggestionActiveIndex = -1;
     const normalizedSearch = normalizeText(search);
 
     if (normalizedSearch.length < 2) {
-        menu.hidden = true;
+        slotDom.suggestions.hidden = true;
         return;
     }
 
-    const matches = uniqueSpecies
+    const matches = getUniqueAvailableOpponentSpecies(slotIndex)
         .filter((mon) =>
-        normalizeText(getPokemonDisplayName(mon)).includes(normalizedSearch) ||
-        normalizeText(getName(mon, "fr")).includes(normalizedSearch) ||
-        normalizeText(getName(mon, "en")).includes(normalizedSearch)
+            normalizeText(getPokemonDisplayName(mon)).includes(normalizedSearch) ||
+            normalizeText(getName(mon, "fr")).includes(normalizedSearch) ||
+            normalizeText(getName(mon, "en")).includes(normalizedSearch)
         )
         .slice(0, 12);
 
+    opponentState.suggestionMatches = matches;
+    opponentState.suggestionActiveIndex = -1;
+
     if (matches.length === 0) {
-        menu.hidden = true;
+        slotDom.suggestions.hidden = true;
         return;
     }
-
-    opponentSuggestionMatches = matches;
-    opponentSuggestionActiveIndex = -1;
 
     matches.forEach((mon, index) => {
         const item = document.createElement("div");
@@ -141,52 +258,120 @@ function populateOpponentPokemonSuggestions(uniqueSpecies, search = "") {
 
         item.addEventListener("mousedown", (event) => {
             event.preventDefault();
-            selectOpponentPokemonAndRender(mon);
+            selectOpponentPokemonAndRender(mon, slotIndex);
         });
 
-        menu.appendChild(item);
+        slotDom.suggestions.appendChild(item);
     });
 
-    menu.hidden = false;
+    slotDom.suggestions.hidden = false;
 }
 
-function updateOpponentSuggestionActiveItem() {
-    const items = document.querySelectorAll("#opponent-pokemon-suggestions .suggestion-item");
+function updateOpponentSuggestionActiveItem(slotIndex) {
+    const slotDom = getOpponentSlotDom(slotIndex);
+    const opponentState = getOpponentBattleState(slotIndex);
+    const items = slotDom.suggestions.querySelectorAll(".suggestion-item");
 
     items.forEach((item, index) => {
-        item.classList.toggle("active", index === opponentSuggestionActiveIndex);
+        item.classList.toggle("active", index === opponentState.suggestionActiveIndex);
     });
 }
 
-function handleOpponentSuggestionKeyboard(event) {
-    const menu = dom.opponentPokemonSuggestions;
+function handleOpponentSuggestionKeyboard(event, slotIndex) {
+    const slotDom = getOpponentSlotDom(slotIndex);
+    const opponentState = getOpponentBattleState(slotIndex);
+    const matches = opponentState.suggestionMatches;
 
-    if (menu.hidden || opponentSuggestionMatches.length === 0) {
+    if (slotDom.suggestions.hidden || matches.length === 0) {
         return;
     }
 
     if (event.key === "ArrowDown") {
         event.preventDefault();
-        opponentSuggestionActiveIndex =
-            (opponentSuggestionActiveIndex + 1) % opponentSuggestionMatches.length;
-        updateOpponentSuggestionActiveItem();
+        opponentState.suggestionActiveIndex = (opponentState.suggestionActiveIndex + 1) % matches.length;
+        updateOpponentSuggestionActiveItem(slotIndex);
     }
 
     if (event.key === "ArrowUp") {
         event.preventDefault();
-        opponentSuggestionActiveIndex =
-            (opponentSuggestionActiveIndex - 1 + opponentSuggestionMatches.length) % opponentSuggestionMatches.length;
-        updateOpponentSuggestionActiveItem();
+        opponentState.suggestionActiveIndex =
+            (opponentState.suggestionActiveIndex - 1 + matches.length) % matches.length;
+        updateOpponentSuggestionActiveItem(slotIndex);
     }
 
-    if (event.key === "Enter" && opponentSuggestionActiveIndex >= 0) {
+    if (event.key === "Enter" && opponentState.suggestionActiveIndex >= 0) {
         event.preventDefault();
-        selectOpponentPokemonAndRender(opponentSuggestionMatches[opponentSuggestionActiveIndex]);
+        selectOpponentPokemonAndRender(matches[opponentState.suggestionActiveIndex], slotIndex);
     }
 
     if (event.key === "Escape") {
-        menu.hidden = true;
+        slotDom.suggestions.hidden = true;
     }
+}
+
+function bindOpponentPokemonSlotEvents(slotIndex) {
+    const slotDom = getOpponentSlotDom(slotIndex);
+
+    slotDom.input.addEventListener("focus", () => {
+        battleState.activeOpponentSlotIndex = slotIndex;
+        updateTableSelectionHints();
+    });
+
+    slotDom.select.addEventListener("focus", () => {
+        battleState.activeOpponentSlotIndex = slotIndex;
+        updateTableSelectionHints();
+    });
+
+    slotDom.input.addEventListener("keydown", (event) => {
+        handleOpponentSuggestionKeyboard(event, slotIndex);
+    });
+
+    slotDom.clearButton.addEventListener("click", () => {
+        clearOpponentPokemonSelection(slotIndex);
+        slotDom.input.focus();
+    });
+
+    slotDom.select.addEventListener("change", (event) => {
+        if (!hasBattlePokemonSourceForOpponentSlot(slotIndex) || !event.target.value) {
+            clearOpponentPokemonSelection(slotIndex);
+            return;
+        }
+
+        const mon = findOpponentPokemonBySpeciesId(event.target.value, slotIndex);
+        selectOpponentPokemonAndRender(mon, slotIndex);
+    });
+
+    slotDom.input.addEventListener("input", (event) => {
+        if (!event.target.value.trim()) {
+            clearOpponentPokemonSelection(slotIndex);
+        } else if (hasBattlePokemonSourceForOpponentSlot(slotIndex)) {
+            populateOpponentPokemonSuggestions(event.target.value, slotIndex);
+        }
+        updateSearchClearButtons();
+    });
+
+    slotDom.input.addEventListener("blur", () => {
+        setTimeout(() => {
+            slotDom.suggestions.hidden = true;
+        }, 100);
+    });
+
+    slotDom.input.addEventListener("change", (event) => {
+        if (!hasBattlePokemonSourceForOpponentSlot(slotIndex)) {
+            return;
+        }
+
+        if (!event.target.value.trim()) {
+            clearOpponentPokemonSelection(slotIndex);
+            return;
+        }
+
+        const mon = findOpponentPokemonByInputValue(event.target.value, slotIndex);
+
+        if (mon) {
+            selectOpponentPokemonAndRender(mon, slotIndex);
+        }
+    });
 }
 
 function getUniqueVisibleMoveIds(visibleSets) {
@@ -203,8 +388,89 @@ function getUniqueVisibleMoveIds(visibleSets) {
     return [...moveIds];
 }
 
+// AI rendering follows Platinum's structure, using Emerald's battle format state.
+function getMoveAiRoutineTexts(moveId, mode) {
+    const routine = window.moveAiRoutines?.[moveId]?.routine;
+    const modeData = routine?.[mode] ?? (mode === "singles" ? routine : null);
+    const texts = modeData?.[currentLang] ?? modeData?.en ?? [];
+
+    return Array.isArray(texts) ? texts : [];
+}
+
+function buildAiRoutineList(routineTexts) {
+    const list = document.createElement("div");
+    list.className = "ai-routine-list";
+
+    for (const routineText of routineTexts) {
+        const item = document.createElement("pre");
+        item.className = "ai-routine-item";
+        item.textContent = routineText;
+        list.appendChild(item);
+    }
+
+    return list;
+}
+
+function buildDoublesAiSection(titleKey, routineTexts) {
+    if (routineTexts.length === 0) {
+        return null;
+    }
+
+    const section = document.createElement("section");
+    section.className = "ai-routine-doubles-section";
+
+    const title = document.createElement("p");
+    title.className = "ai-routine-doubles-title";
+    title.textContent = translate("ui", titleKey);
+    section.append(title, buildAiRoutineList(routineTexts));
+
+    return section;
+}
+
+function buildDoublesAiRoutineBlock(moveId) {
+    if (!usesDoublesAi()) {
+        return null;
+    }
+
+    const enemySection = buildDoublesAiSection(
+        "aiRoutineDoublesEnemyTitle", getMoveAiRoutineTexts(moveId, "doublesEnemy")
+    );
+    const allySection = buildDoublesAiSection(
+        "aiRoutineDoublesAllyTitle", getMoveAiRoutineTexts(moveId, "doublesAlly")
+    );
+
+    if (!enemySection && !allySection) {
+        return null;
+    }
+
+    const block = document.createElement("div");
+    block.className = "ai-routine-doubles";
+
+    if (enemySection) {
+        block.appendChild(enemySection);
+    }
+
+    if (allySection) {
+        block.appendChild(allySection);
+    }
+
+    return block;
+}
+
 function buildAiRoutineAccordion(visibleSets) {
-    const moveIds = getUniqueVisibleMoveIds(visibleSets);
+    const profile = isFactoryMode() ? getFactoryAiDisplayProfile(visibleSets) : { sets: visibleSets, messageKey: null };
+    const isPalace = battleState.facility === "palace";
+    const help = [];
+    if (profile.messageKey) { help.push(translate("ui", profile.messageKey)); }
+    if (usesDoublesAi()) { help.push(translate("ui", profile.sets.length ? "aiRoutineDoublesNote" : "factoryAiDoublesNote")); }
+    if (profile.sets.length === 0) {
+        const status = document.createElement("p");
+        status.className = "ai-mode-status";
+        status.textContent = translate("ui", getFactoryAiKind() === "random" ? "factoryAiRandomTitle" : "factoryAiBasicTitle");
+        status.appendChild(createHelpTooltip(help.join("\n\n")));
+        return status;
+    }
+    const moveIds = getUniqueVisibleMoveIds(profile.sets);
 
     const details = document.createElement("details");
     details.className = "ai-routine-panel";
@@ -212,25 +478,28 @@ function buildAiRoutineAccordion(visibleSets) {
     const summary = document.createElement("summary");
     summary.className = "ai-routine-summary";
     summary.textContent = translate("ui", "aiRoutineTitle");
+    if (help.length && !isPalace) { summary.appendChild(createHelpTooltip(help.join("\n\n"))); }
 
     const content = document.createElement("div");
     content.className = "ai-routine-content";
+
+    if (isPalace) {
+        const note = document.createElement("p");
+        note.className = "palace-ai-note";
+        note.textContent = [translate("ui", "palaceAiNote"), ...help].join("\n\n");
+        content.appendChild(note);
+    }
 
     for (const moveId of moveIds) {
         content.appendChild(buildMoveAiRoutineBlock(moveId));
     }
 
     details.append(summary, content);
-
     return details;
 }
 
 function buildMoveAiRoutineBlock(moveId) {
-    const routineData = window.moveAiRoutines?.[moveId];
-    const routineTexts =
-        routineData?.routine?.[currentLang]
-        ?? routineData?.routine?.en
-        ?? [];
+    const singlesTexts = getMoveAiRoutineTexts(moveId, "singles");
 
     const details = document.createElement("details");
     details.className = "ai-routine-move";
@@ -244,38 +513,36 @@ function buildMoveAiRoutineBlock(moveId) {
 
     details.appendChild(summary);
 
-    if (routineTexts.length === 0) {
+    if (singlesTexts.length === 0) {
         const missing = document.createElement("p");
         missing.className = "ai-routine-missing";
         missing.textContent = translate("ui", "aiRoutineMissingData");
 
         details.appendChild(missing);
-        return details;
+    } else {
+        details.appendChild(buildAiRoutineList(singlesTexts));
     }
 
-    const list = document.createElement("div");
-    list.className = "ai-routine-list";
+    const doublesBlock = buildDoublesAiRoutineBlock(moveId);
 
-    for (const routineText of routineTexts) {
-        const item = document.createElement("pre");
-        item.className = "ai-routine-item";
-        item.textContent = routineText;
-
-        list.appendChild(item);
+    if (doublesBlock) {
+        details.appendChild(doublesBlock);
     }
-
-    details.appendChild(list);
 
     return details;
 }
 
-function renderSelectedPokemonDetails(trainer, speciesId) {
-    const container = dom.selectedPokemonDetails;
-    const sets = getSelectedPokemonSets(trainer, speciesId);
+function renderSelectedPokemonDetails(speciesId, slotIndex = PRIMARY_OPPONENT_SLOT_INDEX) {
+    const opponentState = getOpponentBattleState(slotIndex);
+    const trainer = getTrainerForOpponentSlot(slotIndex);
+    const possibleSetIds = opponentState.possibleSetIds;
+    const container = getOpponentSlotDom(slotIndex).details;
+    const sets = getSelectedPokemonSets(speciesId, slotIndex);
 
     container.replaceChildren();
 
     if (sets.length === 0) {
+        updateSelectedPokemonPresence();
         container.hidden = true;
         return;
     }
@@ -284,10 +551,19 @@ function renderSelectedPokemonDetails(trainer, speciesId) {
     const visibleSets = sets.filter((mon) => possibleSetIds.has(mon.id));
     const hiddenSets = sets.filter((mon) => !possibleSetIds.has(mon.id));
 
-    for (const mon of visibleSets) {
-        const stats = calculateStats(mon, trainer.ivTier, level);
-        const card = buildPokemonDetailCard(mon, stats, trainer.ivTier);
-        container.appendChild(card);
+    const groups = isFactoryMode() ? getFactoryBattleGroups(visibleSets) : [{ mons: visibleSets }];
+    for (const group of groups) {
+        if (group.key) {
+            const phase = document.createElement("p");
+            phase.className = "factory-detail-group-title";
+            phase.textContent = translate("ui", group.key);
+            container.appendChild(phase);
+        }
+        for (const mon of group.mons) {
+            const stats = calculateBattlePokemonStats(mon, level, trainer);
+            const card = buildPokemonDetailCard(mon, stats, getBattlePokemonIvLabel(mon, trainer), slotIndex);
+            container.appendChild(card);
+        }
     }
 
     if (visibleSets.length > 0) {
@@ -295,24 +571,25 @@ function renderSelectedPokemonDetails(trainer, speciesId) {
     }
 
     if (hiddenSets.length > 0) {
-        container.appendChild(buildHiddenSetsPanel(hiddenSets));
+        container.appendChild(buildHiddenSetsPanel(hiddenSets, slotIndex));
     }
 
+    updateSelectedPokemonPresence();
     container.hidden = false;
 }
 
-function resetPossibleSetsForPokemon(trainer, speciesId) {
-    currentOpponentSpeciesId = speciesId;
-    possibleSetIds = new Set(
-        getSelectedPokemonSets(trainer, speciesId).map((mon) => mon.id)
-    );
+function resetPossibleSetsForPokemon(speciesId, slotIndex = PRIMARY_OPPONENT_SLOT_INDEX) {
+    const opponentState = getOpponentBattleState(slotIndex);
+    opponentState.speciesId = speciesId;
+    opponentState.possibleSetIds = new Set(getSelectedPokemonSets(speciesId, slotIndex).map((mon) => mon.id));
 }
 
 // ---------------------------------------------------------------------
 // Initialization and events
 // ---------------------------------------------------------------------
 
-function buildPokemonDetailCard(mon, stats, ivTier) {
+function buildPokemonDetailCard(mon, stats, ivTier, slotIndex) {
+    const possibleSetIds = getOpponentBattleState(slotIndex).possibleSetIds;
     const card = document.createElement("article");
     card.className = "pokemon-detail-card";
 
@@ -324,7 +601,7 @@ function buildPokemonDetailCard(mon, stats, ivTier) {
     checkbox.checked = possibleSetIds.has(mon.id);
 
     checkbox.addEventListener("change", () => {
-        togglePossibleSet(mon.id);
+        togglePossibleSet(mon.id, slotIndex);
     });
 
     const label = document.createElement("span");
@@ -336,7 +613,7 @@ function buildPokemonDetailCard(mon, stats, ivTier) {
         if (event.target === checkbox) {
             return;
         }
-        togglePossibleSet(mon.id);
+        togglePossibleSet(mon.id, slotIndex);
     });
 
     const content = document.createElement("div");
@@ -358,14 +635,16 @@ function buildPokemonDetailCard(mon, stats, ivTier) {
         buildAbilitiesInfoLine(mon.abilities),
         buildNatureInfoLine(mon.nature),
         buildItemInfoLine(mon.item, itemSpriteUrl),
-        buildSimpleInfoLine(translate("columns", "iv"), ivTier)
+        buildSimpleInfoLine(translate("ui", "iv"), ivTier)
     );
 
     const statsBlock = buildStatsBlock(stats);
-    const movesBlock = buildMovesBlock(mon);
+    const movesBlock = buildMovesBlock(mon, slotIndex);
 
     content.append(sprite, info, statsBlock);
     card.append(title, content, movesBlock);
+
+    if (battleState.facility === "palace") { card.appendChild(buildPalaceSetProbabilities(mon, slotIndex)); }
 
     return card;
 }
@@ -418,7 +697,7 @@ function buildNatureInfoLine(natureId) {
     const line = document.createElement("p");
 
     const strong = document.createElement("strong");
-    strong.textContent = `${translate("columns", "nature")} : `;
+    strong.textContent = `${translate("ui", "nature")} : `;
 
     const badge = document.createElement("span");
     badge.className = "detail-badge";
@@ -435,7 +714,7 @@ function buildItemInfoLine(itemId, itemSpriteUrl) {
     line.className = "pokemon-detail-item";
 
     const strong = document.createElement("strong");
-    strong.textContent = `${translate("columns", "item")} : `;
+    strong.textContent = `${translate("ui", "item")} : `;
 
     const text = document.createElement("span");
     text.textContent = translateEntity("items", itemId);
@@ -456,7 +735,7 @@ function buildItemInfoLine(itemId, itemSpriteUrl) {
 }
 
 function buildStatsBlock(stats) {
-    const statMax = Math.max(stats.hp, stats.atk, stats.def, stats.spa, stats.spd, stats.spe);
+    const statMax = Math.max(...Object.values(stats).map(getBattleStatMaximum));
 
     const statsBlock = document.createElement("div");
     statsBlock.className = "pokemon-detail-stats";
@@ -474,17 +753,18 @@ function buildStatsBlock(stats) {
         const row = document.createElement("div");
         row.className = "stat-bar-row";
 
-        const percentage = Math.round((value / statMax) * 100);
+        const maximum = getBattleStatMaximum(value);
+        const percentage = Math.round((maximum / statMax) * 100);
 
         row.innerHTML = `
         <span class="stat-label">${label}</span>
         <div class="stat-bar-background">
             <div
                 class="stat-bar-fill"
-                style="width:${percentage}%; background-color:${getStatBarColor(value)}"
+                style="width:${percentage}%; background-color:${getStatBarColor(maximum)}"
             ></div>
         </div>
-        <span class="stat-value">${value}</span>
+        <span class="stat-value">${formatBattleStat(value)}</span>
         `;
 
         statsBlock.appendChild(row);
@@ -493,17 +773,17 @@ function buildStatsBlock(stats) {
     return statsBlock;
 }
 
-function togglePossibleSet(monId) {
-    if (possibleSetIds.has(monId)) {
-        possibleSetIds.delete(monId);
+function togglePossibleSet(monId, slotIndex) {
+    const opponentState = getOpponentBattleState(slotIndex);
+    if (opponentState.possibleSetIds.has(monId)) {
+        opponentState.possibleSetIds.delete(monId);
     } else {
-        possibleSetIds.add(monId);
+        opponentState.possibleSetIds.add(monId);
     }
-
-    renderSelectedPokemonDetails(currentTrainer, currentOpponentSpeciesId);
+    renderSelectedPokemonDetails(opponentState.speciesId, slotIndex);
 }
 
-function buildHiddenSetsPanel(hiddenSets) {
+function buildHiddenSetsPanel(hiddenSets, slotIndex) {
     const panel = document.createElement("div");
     panel.className = "hidden-sets-panel";
 
@@ -523,11 +803,12 @@ function buildHiddenSetsPanel(hiddenSets) {
         checkbox.checked = false;
 
         checkbox.addEventListener("change", () => {
-            togglePossibleSet(mon.id);
+            togglePossibleSet(mon.id, slotIndex);
         });
 
         const text = document.createElement("span");
-        text.textContent = `${getName(mon)} ${mon.setNumber ?? ""}`;
+        text.textContent = `${getName(mon)} ${mon.setNumber ?? ""}` +
+            (isFactoryMode() ? ` — ${getBattlePokemonIvLabel(mon)} IV — ${translate("ui", getFactoryMonGroupId(mon))}` : "");
 
         label.append(checkbox, text);
         list.appendChild(label);
@@ -569,7 +850,8 @@ function getMovePpStateKey(mon, moveId, moveIndex) {
     return `${mon.id}:${moveIndex}:${moveId}`;
 }
 
-function getCurrentMovePp(mon, moveId, moveIndex) {
+function getCurrentMovePp(mon, moveId, moveIndex, slotIndex) {
+    const movePpState = getOpponentBattleState(slotIndex).movePpState;
     const maxPp = getMovePowerPoints(moveId);
     const key = getMovePpStateKey(mon, moveId, moveIndex);
 
@@ -580,18 +862,19 @@ function getCurrentMovePp(mon, moveId, moveIndex) {
     return movePpState.get(key);
 }
 
-function updateMovePp(mon, moveId, moveIndex, delta) {
+function updateMovePp(mon, moveId, moveIndex, delta, slotIndex) {
+    const movePpState = getOpponentBattleState(slotIndex).movePpState;
     const maxPp = getMovePowerPoints(moveId);
     const key = getMovePpStateKey(mon, moveId, moveIndex);
-    const currentPp = getCurrentMovePp(mon, moveId, moveIndex);
+    const currentPp = getCurrentMovePp(mon, moveId, moveIndex, slotIndex);
     const nextPp = Math.max(0, Math.min(maxPp, currentPp + delta));
 
     movePpState.set(key, nextPp);
 
-    renderSelectedPokemonDetails(currentTrainer, currentOpponentSpeciesId);
+    renderSelectedPokemonDetails(getOpponentBattleState(slotIndex).speciesId, slotIndex);
 }
 
-function buildMovesBlock(mon) {
+function buildMovesBlock(mon, slotIndex) {
     const movesBlock = document.createElement("div");
     movesBlock.className = "pokemon-detail-moves";
 
@@ -603,8 +886,9 @@ function buildMovesBlock(mon) {
     grid.className = "moves-grid";
 
     mon.moves.forEach((moveId, moveIndex) => {
+        if (battleState.facility === "palace" && !moveId) { return; }
         const maxPp = getMovePowerPoints(moveId);
-        const currentPp = getCurrentMovePp(mon, moveId, moveIndex);
+        const currentPp = getCurrentMovePp(mon, moveId, moveIndex, slotIndex);
 
         const move = document.createElement("div");
         move.className = "move-detail move-detail-with-pp";
@@ -630,7 +914,7 @@ function buildMovesBlock(mon) {
         minusButton.textContent = "−";
         minusButton.disabled = currentPp <= 0;
         minusButton.addEventListener("click", () => {
-            updateMovePp(mon, moveId, moveIndex, -1);
+            updateMovePp(mon, moveId, moveIndex, -1, slotIndex);
         });
 
         const plusButton = document.createElement("button");
@@ -639,14 +923,19 @@ function buildMovesBlock(mon) {
         plusButton.textContent = "+";
         plusButton.disabled = currentPp >= maxPp;
         plusButton.addEventListener("click", () => {
-            updateMovePp(mon, moveId, moveIndex, 1);
+            updateMovePp(mon, moveId, moveIndex, 1, slotIndex);
         });
 
         const controls = document.createElement("span");
         controls.className = "move-pp-controls";
         controls.append(minusButton, plusButton);
 
-        move.append(label, pp, controls);
+        if (battleState.facility === "palace") {
+            const nameAndGroup = document.createElement("span");
+            nameAndGroup.className = "palace-move-label";
+            nameAndGroup.append(label, createPalaceMoveBadge(moveId));
+            move.append(nameAndGroup, pp, controls);
+        } else { move.append(label, pp, controls); }
         grid.appendChild(move);
     });
 

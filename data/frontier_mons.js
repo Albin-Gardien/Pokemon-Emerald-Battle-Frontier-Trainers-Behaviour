@@ -145,7 +145,7 @@ window.frontierMons = {
     nature: "hardy",
     item: "scope_lens",
     baseStats: { hp: 58, atk: 64, def: 58, spa: 80, spd: 65, spe: 80 },
-    evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+    evs: { hp: 0, atk: 255, def: 0, spa: 0, spd: 0, spe: 255 },
     moves: ["flamethrower", "slash", "ancientpower", "dragon_rage"]
   },
 
@@ -160,7 +160,7 @@ window.frontierMons = {
     nature: "modest",
     item: "focus_band",
     baseStats: { hp: 78, atk: 84, def: 78, spa: 109, spd: 85, spe: 100 },
-    evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+    evs: { hp: 0, atk: 0, def: 0, spa: 255, spd: 0, spe: 255 },
     moves: ["fire_blast", "sunny_day", "roar", "scary_face"]
   },
 
@@ -175,7 +175,7 @@ window.frontierMons = {
     nature: "adamant",
     item: "brightpowder",
     baseStats: { hp: 78, atk: 84, def: 78, spa: 109, spd: 85, spe: 100 },
-    evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+    evs: { hp: 0, atk: 255, def: 0, spa: 0, spd: 0, spe: 255 },
     moves: ["earthquake", "aerial_ace", "dragon_dance", "smokescreen"]
   },
 
@@ -190,7 +190,7 @@ window.frontierMons = {
     nature: "modest",
     item: "lum_berry",
     baseStats: { hp: 78, atk: 84, def: 78, spa: 109, spd: 85, spe: 100 },
-    evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+    evs: { hp: 0, atk: 0, def: 0, spa: 255, spd: 0, spe: 255 },
     moves: ["flamethrower", "dragon_claw", "bite", "brick_break"]
   },
 
@@ -205,7 +205,7 @@ window.frontierMons = {
     nature: "hardy",
     item: "white_herb",
     baseStats: { hp: 78, atk: 84, def: 78, spa: 109, spd: 85, spe: 100 },
-    evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+    evs: { hp: 0, atk: 170, def: 0, spa: 170, spd: 0, spe: 170 },
     moves: ["overheat", "earthquake", "aerial_ace", "rock_slide"]
   },
 
@@ -220,7 +220,7 @@ window.frontierMons = {
     nature: "docile",
     item: "sitrus_berry",
     baseStats: { hp: 44, atk: 48, def: 65, spa: 50, spd: 64, spe: 43 },
-    evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+    evs: { hp: 255, atk: 0, def: 0, spa: 255, spd: 0, spe: 0 },
     moves: ["water_pulse", "bite", "withdraw", "protect"]
   },
 
@@ -235,7 +235,7 @@ window.frontierMons = {
     nature: "docile",
     item: "focus_band",
     baseStats: { hp: 59, atk: 63, def: 80, spa: 65, spd: 80, spe: 58 },
-    evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+    evs: { hp: 255, atk: 0, def: 0, spa: 255, spd: 0, spe: 0 },
     moves: ["water_pulse", "bite", "mud_slap", "yawn"]
   },
 
@@ -250,7 +250,7 @@ window.frontierMons = {
     nature: "docile",
     item: "shell_bell",
     baseStats: { hp: 59, atk: 63, def: 80, spa: 65, spd: 80, spe: 58 },
-    evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+    evs: { hp: 255, atk: 0, def: 0, spa: 255, spd: 0, spe: 0 },
     moves: ["surf", "ice_beam", "rapid_spin", "protect"]
   },
 
@@ -265,7 +265,7 @@ window.frontierMons = {
     nature: "modest",
     item: "shell_bell",
     baseStats: { hp: 79, atk: 83, def: 100, spa: 85, spd: 105, spe: 78 },
-    evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+    evs: { hp: 255, atk: 0, def: 0, spa: 255, spd: 0, spe: 0 },
     moves: ["hydro_pump", "rain_dance", "bite", "seismic_toss"]
   },
 
@@ -280,7 +280,7 @@ window.frontierMons = {
     nature: "brave",
     item: "shell_bell",
     baseStats: { hp: 79, atk: 83, def: 100, spa: 85, spd: 105, spe: 78 },
-    evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+    evs: { hp: 170, atk: 170, def: 0, spa: 170, spd: 0, spe: 0 },
     moves: ["hydro_pump", "mega_kick", "brick_break", "mirror_coat"]
   },
 
@@ -295,7 +295,7 @@ window.frontierMons = {
     nature: "docile",
     item: "focus_band",
     baseStats: { hp: 79, atk: 83, def: 100, spa: 85, spd: 105, spe: 78 },
-    evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+    evs: { hp: 170, atk: 170, def: 0, spa: 170, spd: 0, spe: 0 },
     moves: ["surf", "earthquake", "ice_beam", "counter"]
   },
 
@@ -310,7 +310,7 @@ window.frontierMons = {
     nature: "docile",
     item: "focus_band",
     baseStats: { hp: 79, atk: 83, def: 100, spa: 85, spd: 105, spe: 78 },
-    evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+    evs: { hp: 170, atk: 170, def: 0, spa: 170, spd: 0, spe: 0 },
     moves: ["surf", "earthquake", "ice_beam", "mirror_coat"]
   },
 
@@ -4578,7 +4578,7 @@ window.frontierMons = {
 		nature: "adamant",
 		item: "chesto_berry",
 		baseStats: { hp: 160, atk: 110, def: 65, spa: 65, spd: 110, spe: 30 },
-		evs: { hp: 0, atk: 0, def: 255, spa: 0, spd: 255, spe: 0 },
+		evs: { hp: 170, atk: 0, def: 170, spa: 0, spd: 170, spe: 0 },
 		moves: ["earthquake", "rock_slide", "curse", "rest"]
 	},
 	snorlax_3: {
@@ -4592,7 +4592,7 @@ window.frontierMons = {
 		nature: "adamant",
 		item: "quick_claw",
 		baseStats: { hp: 160, atk: 110, def: 65, spa: 65, spd: 110, spe: 30 },
-		evs: { hp: 0, atk: 255, def: 255, spa: 0, spd: 0, spe: 0 },
+		evs: { hp: 0, atk: 0, def: 255, spa: 0, spd: 255, spe: 0 },
 		moves: ["mega_kick", "shadow_ball", "swagger", "psych_up"]
 	},
 	snorlax_4: {
@@ -4634,7 +4634,7 @@ window.frontierMons = {
 		nature: "adamant",
 		item: "leftovers",
 		baseStats: { hp: 160, atk: 110, def: 65, spa: 65, spd: 110, spe: 30 },
-		evs: { hp: 170, atk: 0, def: 170, spa: 0, spd: 170, spe: 0 },
+		evs: { hp: 0, atk: 255, def: 255, spa: 0, spd: 0, spe: 0 },
 		moves: ["earthquake", "shadow_ball", "brick_break", "counter"]
 	},
 	snorlax_7: {

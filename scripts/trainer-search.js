@@ -1,24 +1,19 @@
 "use strict";
 
 // -----------------------------------------------------------------------------
-// Trainer data access, trainer search, and series filter
+// Trainer data access
 // -----------------------------------------------------------------------------
-
-let trainerSuggestionMatches = [];
-let trainerSuggestionActiveIndex = -1;
-let opponentSuggestionMatches = [];
-let opponentSuggestionActiveIndex = -1;
-
+// Returns trainer list
 function getTrainerList() {
-  return Object.values(window.frontierTrainers);
+  return [...Object.values(window.frontierTrainers), ...getExtraFacilityTrainers()];
 }
 
-// Finds a trainer by ID.
+// Finds a trainer by ID
 function getTrainerById(trainerId) {
-  return window.frontierTrainers.find(trainer => trainer.id === trainerId);
+  return getTrainerList().find(trainer => trainer.id === trainerId);
 }
 
-// Builds the searchable text for one trainer.
+// Builds the searchable text for one trainer
 function getTrainerSearchText(trainer) {
   return normalizeText([
     trainer.id,
@@ -27,95 +22,7 @@ function getTrainerSearchText(trainer) {
   ].filter(Boolean).join(" "));
 }
 
-function populateTrainerSuggestions(search = "") {
-    const menu = dom.trainerSuggestions;
-    menu.replaceChildren();
-
-    const normalizedSearch = normalizeText(search);
-
-    if (normalizedSearch.length < 2) {
-        menu.hidden = true;
-        return;
-    }
-
-    const visibleIds = getVisibleTrainerIds();
-    const matches = getTrainerList()
-        .filter((trainer) => visibleIds.has(trainer.id))
-        .filter((trainer) => getTrainerSearchText(trainer).includes(normalizedSearch))
-        .slice(0, 12);
-
-    if (matches.length === 0) {
-        menu.hidden = true;
-        return;
-    }
-
-    trainerSuggestionMatches = matches;
-    trainerSuggestionActiveIndex = -1;
-
-    matches.forEach((trainer, index) => {
-        const item = document.createElement("div");
-        item.className = "suggestion-item";
-        item.textContent = getTrainerDisplayName(trainer);
-        item.dataset.index = index;
-
-        item.addEventListener("mousedown", (event) => {
-            event.preventDefault();
-            selectTrainerAndRender(trainer);
-        });
-
-        menu.appendChild(item);
-    });
-
-    menu.hidden = false;
-}
-
-function updateTrainerSuggestionActiveItem() {
-    const items = dom.trainerSuggestions.querySelectorAll(".suggestion-item");
-
-    items.forEach((item, index) => {
-        item.classList.toggle("active", index === trainerSuggestionActiveIndex);
-    });
-}
-
-function selectActiveTrainerSuggestion() {
-    const trainer = trainerSuggestionMatches[trainerSuggestionActiveIndex];
-
-    if (trainer) {
-        selectTrainerAndRender(trainer);
-    }
-}
-
-function handleTrainerSuggestionKeyboard(event) {
-    const menu = dom.trainerSuggestions;
-
-    if (menu.hidden || trainerSuggestionMatches.length === 0) {
-        return;
-    }
-
-    if (event.key === "ArrowDown") {
-        event.preventDefault();
-        trainerSuggestionActiveIndex =
-            (trainerSuggestionActiveIndex + 1) % trainerSuggestionMatches.length;
-        updateTrainerSuggestionActiveItem();
-    }
-
-    if (event.key === "ArrowUp") {
-        event.preventDefault();
-        trainerSuggestionActiveIndex =
-            (trainerSuggestionActiveIndex - 1 + trainerSuggestionMatches.length) % trainerSuggestionMatches.length;
-        updateTrainerSuggestionActiveItem();
-    }
-
-    if (event.key === "Enter" && trainerSuggestionActiveIndex >= 0) {
-        event.preventDefault();
-        selectActiveTrainerSuggestion();
-    }
-
-    if (event.key === "Escape") {
-        menu.hidden = true;
-    }
-}
-
+// Returns trainer display name
 function getTrainerDisplayName(trainer) {
     const mainName = getName(trainer, currentLang);
     const secondaryName = getName(trainer, getOtherLang());
@@ -123,6 +30,73 @@ function getTrainerDisplayName(trainer) {
     return mainName === secondaryName ? mainName : `${mainName} (${secondaryName})`;
 }
 
+// Returns trainer slot DOM
+function getTrainerSlotDom(slotIndex = PRIMARY_TRAINER_SLOT_INDEX) {
+    return dom.trainerSlots[slotIndex];
+}
+
+// -----------------------------------------------------------------------------
+// Series data helpers
+// -----------------------------------------------------------------------------
+// Returns active series
+function getActiveSeries() {
+    const facilitySeries = getFacilityTrainerSeries();
+    if (facilitySeries) {
+        return [facilitySeries];
+    }
+
+    if (selectedSeriesId === "all") {
+        return frontierSeries;
+    }
+
+    return frontierSeries.filter((serie) => serie.id === selectedSeriesId);
+}
+
+// Returns trainers for series
+function getTrainersForSeries(serie) {
+    return getTrainerList().filter((trainer) =>
+        trainer.seriesIds ? trainer.seriesIds.includes(serie.id) :
+        trainer.number >= serie.start && trainer.number <= serie.end
+    );
+}
+
+// Returns visible trainer ids
+function getVisibleTrainerIds() {
+    const ids = new Set();
+
+    for (const serie of getActiveSeries()) {
+        for (const trainer of getTrainersForSeries(serie)) {
+        ids.add(trainer.id);
+        }
+    }
+
+    return ids;
+}
+
+// -----------------------------------------------------------------------------
+// Trainer availability and select rendering
+// -----------------------------------------------------------------------------
+// Returns whether trainer selected in other slot
+function isTrainerSelectedInOtherSlot(trainerId, slotIndex) {
+    if (battleState.format !== "multi") {
+        return false;
+    }
+
+    return battleState.trainers.some((trainerState, otherSlotIndex) =>
+        otherSlotIndex !== slotIndex && trainerState.trainer?.id === trainerId
+    );
+}
+
+// Returns available trainers for slot
+function getAvailableTrainersForSlot(slotIndex) {
+    const visibleIds = getVisibleTrainerIds();
+
+    return getTrainerList()
+        .filter((trainer) => visibleIds.has(trainer.id))
+        .filter((trainer) => !isTrainerSelectedInOtherSlot(trainer.id, slotIndex));
+}
+
+// Creates placeholder option
 function createPlaceholderOption(label) {
     const option = document.createElement("option");
     option.value = "";
@@ -132,82 +106,250 @@ function createPlaceholderOption(label) {
     return option;
 }
 
-// Fills the trainer select while preserving the source data order.
-function populateTrainerSelect(selectedTrainerId = null) {
-    const select = dom.trainerSelect;
-    const previousValue = selectedTrainerId ?? select.value;
+// Creates trainer option
+function createTrainerOption(trainer) {
+    const option = document.createElement("option");
+    option.value = trainer.id;
+
+    const mainName = getName(trainer, currentLang);
+    const secondaryName = getName(trainer, getOtherLang());
+
+    option.textContent = mainName === secondaryName ? mainName : `${mainName} (${secondaryName})`;
+
+    return option;
+}
+
+// Fills the trainer select while preserving the source data order
+function populateTrainerSelect(slotIndex = PRIMARY_TRAINER_SLOT_INDEX, selectedTrainerId = null) {
+    const slotDom = getTrainerSlotDom(slotIndex);
+    const previousValue = selectedTrainerId ?? slotDom.select.value;
     const activeSeries = getActiveSeries();
 
-    select.replaceChildren();
-    select.appendChild(createPlaceholderOption(translate("ui", "trainerSelectPlaceholder")));
+    slotDom.select.replaceChildren();
+    slotDom.select.appendChild(createPlaceholderOption(translate("ui", "trainerSelectPlaceholder")));
 
-    if (activeSeries.length === 0) {
-        return;
-    }
+    for (const serie of activeSeries) {
+        const trainers = getTrainersForSeries(serie)
+            .filter((trainer) => !isTrainerSelectedInOtherSlot(trainer.id, slotIndex));
 
-    if (activeSeries.length === 1) {
-        for (const trainer of getTrainersForSeries(activeSeries[0])) {
-        select.appendChild(createTrainerOption(trainer));
+        if (trainers.length === 0) {
+            continue;
         }
-    } else {
-        for (const serie of activeSeries) {
+
+        if (activeSeries.length === 1) {
+            trainers.forEach((trainer) => slotDom.select.appendChild(createTrainerOption(trainer)));
+            continue;
+        }
+
         const optgroup = document.createElement("optgroup");
         optgroup.label = translate("series", serie.id);
 
-        for (const trainer of getTrainersForSeries(serie)) {
-            optgroup.appendChild(createTrainerOption(trainer));
-        }
-
-        select.appendChild(optgroup);
-        }
+        trainers.forEach((trainer) => optgroup.appendChild(createTrainerOption(trainer)));
+        slotDom.select.appendChild(optgroup);
     }
 
-    const visibleIds = getVisibleTrainerIds();
-
-    if (previousValue && visibleIds.has(previousValue)) {
-        select.value = previousValue;
+    if (previousValue && Array.from(slotDom.select.options).some((option) => option.value === previousValue)) {
+        slotDom.select.value = previousValue;
     }
-    populateTrainerSuggestions();
 }
 
-// Synchronizes free text input and trainer select.
-function bindTextToTrainerSelect() {
-  const input = dom.trainerTextInput;
-  const select = dom.trainerSelect;
+// Finds trainer by input value
+function findTrainerByInputValue(value, slotIndex = PRIMARY_TRAINER_SLOT_INDEX) {
+    const normalizedValue = normalizeText(value);
+    if (!normalizedValue) { return undefined; }
+    const trainers = getAvailableTrainersForSlot(slotIndex);
+    const selected = getTrainerBattleState(slotIndex).trainer;
+    // A committed suggestion uses a stable ID. Blur must not reinterpret its
+    // displayed name as another trainer's name in the other language.
+    if (selected && trainers.some((trainer) => trainer.id === selected.id) &&
+        normalizeText(getName(selected)) === normalizedValue) { return selected; }
 
-  input.addEventListener("input", () => {
-    const search = normalizeText(input.value);
-    
-    populateTrainerSuggestions(input.value);
+    // For fresh text, prefer the active language before accepting translated names.
+    for (const getLabel of [
+        (trainer) => getName(trainer), getTrainerDisplayName,
+        (trainer) => trainer.id, (trainer) => getName(trainer, getOtherLang())
+    ]) {
+        const match = trainers.find((trainer) => normalizeText(getLabel(trainer)) === normalizedValue);
+        if (match) { return match; }
+    }
+    return undefined;
+}
 
-    if (!search) {
-      select.value = "";
-      return;
+// -----------------------------------------------------------------------------
+// Trainer autocomplete
+// -----------------------------------------------------------------------------
+// Populates trainer suggestions
+function populateTrainerSuggestions(search = "", slotIndex = PRIMARY_TRAINER_SLOT_INDEX) {
+    const trainerState = getTrainerBattleState(slotIndex);
+    const slotDom = getTrainerSlotDom(slotIndex);
+
+    slotDom.suggestions.replaceChildren();
+
+    trainerState.suggestionMatches = [];
+    trainerState.suggestionActiveIndex = -1;
+    const normalizedSearch = normalizeText(search);
+
+    if (normalizedSearch.length < 2) {
+        slotDom.suggestions.hidden = true;
+        return;
     }
 
-    const options = Array.from(select.options);
-    const matchingOption = options.find((option) => {
-        const trainer = getTrainerById(option.value);
-        return trainer && getTrainerSearchText(trainer).includes(search);
+    const matches = getAvailableTrainersForSlot(slotIndex)
+        .filter((trainer) => getTrainerSearchText(trainer).includes(normalizedSearch))
+        .slice(0, 12);
+
+    trainerState.suggestionMatches = matches;
+    trainerState.suggestionActiveIndex = -1;
+
+    if (matches.length === 0) {
+        slotDom.suggestions.hidden = true;
+        return;
+    }
+
+    matches.forEach((trainer, index) => {
+        const item = document.createElement("div");
+        item.className = "suggestion-item";
+        item.textContent = getTrainerDisplayName(trainer);
+        item.dataset.index = index;
+
+        item.addEventListener("mousedown", (event) => {
+            event.preventDefault();
+            selectTrainerAndRender(trainer, slotIndex);
+        });
+
+        slotDom.suggestions.appendChild(item);
     });
 
-    if (matchingOption) {
-      select.value = matchingOption.value;
-    }
-  });
+    slotDom.suggestions.hidden = false;
+}
 
-input.addEventListener("blur", () => {
-    setTimeout(() => {
-        dom.trainerSuggestions.hidden = true;
-    }, 100);
-});
+// Updates trainer suggestion active item
+function updateTrainerSuggestionActiveItem(slotIndex) {
+    const trainerState = getTrainerBattleState(slotIndex);
+    const items = getTrainerSlotDom(slotIndex).suggestions.querySelectorAll(".suggestion-item");
 
-    select.addEventListener("change", () => {
-        const trainer = getTrainerById(select.value);
-        selectTrainerAndRender(trainer);
+    items.forEach((item, index) => {
+        item.classList.toggle("active", index === trainerState.suggestionActiveIndex);
     });
 }
 
+// Selects active trainer suggestion
+function selectActiveTrainerSuggestion(slotIndex) {
+    const trainerState = getTrainerBattleState(slotIndex);
+    const trainer = trainerState.suggestionMatches[trainerState.suggestionActiveIndex];
+
+    if (trainer) {
+        selectTrainerAndRender(trainer, slotIndex);
+    }
+}
+
+// Handles trainer suggestion keyboard
+function handleTrainerSuggestionKeyboard(event, slotIndex = PRIMARY_TRAINER_SLOT_INDEX) {
+    const trainerState = getTrainerBattleState(slotIndex);
+    const menu = getTrainerSlotDom(slotIndex).suggestions;
+    const matches = trainerState.suggestionMatches;
+
+    if (menu.hidden || matches.length === 0) {
+        return;
+    }
+
+    if (event.key === "ArrowDown") {
+        event.preventDefault();
+        trainerState.suggestionActiveIndex = (trainerState.suggestionActiveIndex + 1) % matches.length;
+        updateTrainerSuggestionActiveItem(slotIndex);
+    }
+
+    if (event.key === "ArrowUp") {
+        event.preventDefault();
+        trainerState.suggestionActiveIndex =
+            (trainerState.suggestionActiveIndex - 1 + matches.length) % matches.length;
+        updateTrainerSuggestionActiveItem(slotIndex);
+    }
+
+    if (event.key === "Enter" && trainerState.suggestionActiveIndex >= 0) {
+        event.preventDefault();
+        selectActiveTrainerSuggestion(slotIndex);
+    }
+
+    if (event.key === "Escape") {
+        menu.hidden = true;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Trainer selection and events
+// -----------------------------------------------------------------------------
+// Clears trainer slot selection
+function clearTrainerSlotSelection(slotIndex) {
+    const trainerState = getTrainerBattleState(slotIndex);
+    const slotDom = getTrainerSlotDom(slotIndex);
+
+    trainerState.trainer = null;
+    trainerState.suggestionMatches = [];
+    trainerState.suggestionActiveIndex = -1;
+
+    resetTrainerBattleExclusions(slotIndex);
+
+    for (const opponentSlotIndex of getOpponentSlotIndexesForTrainer(slotIndex)) {
+        resetOpponentBattleState(opponentSlotIndex);
+    }
+
+    slotDom.input.value = "";
+    slotDom.select.value = "";
+    slotDom.suggestions.replaceChildren();
+    slotDom.suggestions.hidden = true;
+
+    clearExcludedPokemonInput(slotIndex);
+    clearExcludedItemInput(slotIndex);
+
+    if (battleState.format === "multi") {
+        for (let trainerIndex = 0; trainerIndex < getActiveTrainerCount(); trainerIndex++) {
+            const selectedTrainerId = getTrainerBattleState(trainerIndex).trainer?.id ?? null;
+            populateTrainerSelect(trainerIndex, selectedTrainerId);
+        }
+    }
+
+    renderBattleResults();
+    updateSelectedPokemonPresence();
+}
+
+// Synchronizes free text input and trainer select
+function bindTrainerSlotEvents(slotIndex) {
+    const slotDom = getTrainerSlotDom(slotIndex);
+    slotDom.input.addEventListener("input", () => {
+        const value = slotDom.input.value;
+        if (!value.trim() || getTrainerBattleState(slotIndex).trainer) {
+            clearTrainerSlotSelection(slotIndex);
+            slotDom.input.value = value;
+        }
+        populateTrainerSuggestions(value, slotIndex);
+        updateSearchClearButtons();
+    });
+    slotDom.input.addEventListener("keydown", (event) => {
+        handleTrainerSuggestionKeyboard(event, slotIndex);
+    });
+    slotDom.input.addEventListener("change", () => {
+        const trainer = findTrainerByInputValue(slotDom.input.value, slotIndex);
+        if (trainer && !isTrainerSelectedInOtherSlot(trainer.id, slotIndex)) {
+            selectTrainerAndRender(trainer, slotIndex);
+        }
+    });
+    slotDom.clearButton.addEventListener("click", () => {
+        clearTrainerSlotSelection(slotIndex);
+        slotDom.input.focus();
+    });
+    slotDom.input.addEventListener("blur", () => {
+        setTimeout(() => { slotDom.suggestions.hidden = true; }, 100);
+    });
+    slotDom.select.addEventListener("change", () => {
+        selectTrainerAndRender(getTrainerById(slotDom.select.value), slotIndex);
+    });
+}
+
+// -----------------------------------------------------------------------------
+// Series filter interface
+// -----------------------------------------------------------------------------
+// Populates series filter
 function populateSeriesFilter() {
     const menu = dom.seriesFilterMenu;
     menu.replaceChildren();
@@ -221,6 +363,7 @@ function populateSeriesFilter() {
     updateSeriesFilterButtonLabel();
 }
 
+// Creates series filter radio
 function createSeriesFilterRadio(value, labelText) {
     const label = document.createElement("label");
     label.className = "series-filter-item";
@@ -235,8 +378,11 @@ function createSeriesFilterRadio(value, labelText) {
         selectedSeriesId = value;
 
         clearTrainerDisplay();
-        populateTrainerSelect();
-        syncTrainerInputWithSelect();
+
+        for (let trainerIndex = 0; trainerIndex < getActiveTrainerCount(); trainerIndex++) {
+            populateTrainerSelect(trainerIndex);
+        }
+
         updateSeriesFilterButtonLabel();
         closeSeriesFilterMenu();
     });
@@ -246,98 +392,44 @@ function createSeriesFilterRadio(value, labelText) {
     return label;
 }
 
+// Toggles series filter menu
 function toggleSeriesFilterMenu() {
     const menu = dom.seriesFilterMenu;
     menu.hidden = !menu.hidden;
+    dom.seriesFilterButton.setAttribute("aria-expanded", String(!menu.hidden));
 }
 
+// Closes the series filter menu
 function closeSeriesFilterMenu() {
     dom.seriesFilterMenu.hidden = true;
+    dom.seriesFilterButton.setAttribute("aria-expanded", "false");
 }
 
+// Updates series filter button label
 function updateSeriesFilterButtonLabel() {
     dom.seriesFilterButton.textContent = selectedSeriesId === "all"
         ? translate("ui", "allSeries")
         : translate("series", selectedSeriesId);
 }
 
+// -----------------------------------------------------------------------------
+// Trainer display reset
+// -----------------------------------------------------------------------------
+// Clears trainer display
 function clearTrainerDisplay() {
-    currentTrainer = null;
-    currentOpponentSpeciesId = null;
-    possibleSetIds.clear();
-
-    dom.resultsContainer.hidden = true;
-    dom.trainerTitle.textContent = "";
-    dom.trainerInfo.textContent = "";
-    dom.pokemonResults.replaceChildren();
-
-    dom.opponentPokemonInput.value = "";
-    dom.opponentPokemonSelect.replaceChildren();
-    dom.opponentSearchContainer.hidden = true;
-
-    dom.selectedPokemonDetails.replaceChildren();
-    dom.selectedPokemonDetails.hidden = true;
-}
-
-function getActiveSeries() {
-    if (selectedSeriesId === "all") {
-        return frontierSeries;
-    }
-
-    return frontierSeries.filter((serie) => serie.id === selectedSeriesId);
-}
-
-function getTrainersForSeries(serie) {
-    return getTrainerList().filter((trainer) =>
-        trainer.number >= serie.start && trainer.number <= serie.end
-    );
-}
-
-function getVisibleTrainerIds() {
-    const ids = new Set();
-
-    for (const serie of getActiveSeries()) {
-        for (const trainer of getTrainersForSeries(serie)) {
-        ids.add(trainer.id);
-        }
-    }
-
-    return ids;
-}
-
-function createTrainerOption(trainer) {
-    const option = document.createElement("option");
-    option.value = trainer.id;
-
-    const mainName = getName(trainer, currentLang);
-    const secondaryName = getName(trainer, getOtherLang());
-
-    option.textContent = mainName === secondaryName ? mainName : `${mainName} (${secondaryName})`;
-
-    return option;
-}
-
-function syncTrainerInputWithSelect() {
-    const select = dom.trainerSelect;
-    const input = dom.trainerTextInput;
-    const trainer = getTrainerById(select.value);
-
-    input.value = trainer ? getName(trainer) : "";
-}
-
-function findTrainerByInputValue(value) {
-    const normalizedValue = normalizeText(value);
-    const visibleIds = getVisibleTrainerIds();
-
-    return getTrainerList().find((trainer) => {
-        if (!visibleIds.has(trainer.id)) {
-        return false;
-        }
-
-        return (
-        normalizeText(getTrainerDisplayName(trainer)) === normalizedValue ||
-        normalizeText(getName(trainer, "fr")) === normalizedValue ||
-        normalizeText(getName(trainer, "en")) === normalizedValue
-        );
+    battleState.trainers.forEach((trainerState, trainerIndex) => {
+        trainerState.trainer = null;
+        trainerState.suggestionMatches = [];
+        trainerState.suggestionActiveIndex = -1;
+        resetTrainerBattleExclusions(trainerIndex);
+        const slotDom = getTrainerSlotDom(trainerIndex);
+        slotDom.input.value = "";
+        slotDom.suggestions.replaceChildren();
+        slotDom.suggestions.hidden = true;
+        clearExcludedPokemonInput(trainerIndex);
+        clearExcludedItemInput(trainerIndex);
     });
+    resetAllOpponentBattleStates();
+    dom.trainerSlots.forEach((_, trainerIndex) => populateTrainerSelect(trainerIndex, ""));
+    renderBattleResults();
 }

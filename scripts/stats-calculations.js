@@ -52,6 +52,12 @@ function calculateStats(mon, iv, level) {
 function getSelectedLevel() {
     const level = Number(dom.levelInput.value);
 
+    if (getFacilityConfig().allowedLevels) {
+        if (getFacilityConfig().allowedLevels.includes(level)) { return level; }
+        dom.levelInput.value = 50;
+        return 50;
+    }
+
     if (level === 50) {
         return 50;
     }
@@ -64,10 +70,34 @@ function getSelectedLevel() {
     return 50;
 }
 
+function updateLevelInputConstraints() {
+    dom.levelInput.min = "50";
+    dom.levelInput.max = "100";
+    dom.levelInput.step = getFacilityConfig().allowedLevels ? "50" : "1";
+    getSelectedLevel();
+}
+
+function calculateBattlePokemonStats(mon, level, trainer) {
+    const iv = getBattlePokemonIv(mon, trainer);
+    if (iv !== null) { return calculateStats(mon, iv, level); }
+    const min = calculateStats(mon, 0, level);
+    const max = calculateStats(mon, 31, level);
+    return Object.fromEntries(Object.keys(min).map((stat) => [stat, { min: min[stat], max: max[stat] }]));
+}
+
+function formatBattleStat(value) {
+    return typeof value === "object" ? (value.min === value.max ? String(value.min) : `${value.min}–${value.max}`) : value;
+}
+
+function getBattleStatMaximum(value) {
+    return typeof value === "object" ? value.max : value;
+}
+
 function isMonAllowedAtLevel(mon, level) {
     return !(level === 50 && forbiddenLevel50Species.has(mon.speciesId));
 }
 
 function getTrainerMonsForLevel(trainer, level) {
-    return getTrainerMons(trainer).filter((mon) => isMonAllowedAtLevel(mon, level));
+    const allow = facilityTools[battleState.facility]?.allowMonAtLevel;
+    return getTrainerMons(trainer).filter((mon) => isMonAllowedAtLevel(mon, level) && (!allow || allow(mon, level)));
 }

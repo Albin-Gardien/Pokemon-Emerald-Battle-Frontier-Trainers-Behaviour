@@ -46,23 +46,24 @@ function setSpriteTextCell(td, imageUrl, text, altText, spriteKind = "item") {
 // ---------------------------------------------------------------------
 
 // Creates the translated table header.
-function createPokemonTableHead() {
+function createPokemonTableHead(showIv = false) {
   const thead = document.createElement("thead");
   thead.innerHTML = `
     <tr>
       <th>${translate("columns", "name")}</th>
       <th>${translate("columns", "set")}</th>
+      ${showIv ? `<th>${translate("ui", "iv")}</th>` : ""}
       <th>${translate("columns", "type1")}</th>
       <th>${translate("columns", "type2")}</th>
       <th>${translate("columns", "ability1")}</th>
       <th>${translate("columns", "ability2")}</th>
-      <th>${translate("columns", "nature")}</th>
-      <th>${translate("columns", "item")}</th>
-      <th>${translate("columns", "hp")}</th>
-      <th>${translate("columns", "attack")}</th>
-      <th>${translate("columns", "defense")}</th>
-      <th>${translate("columns", "spAtk")}</th>
-      <th>${translate("columns", "spDef")}</th>
+      <th>${translate("ui", "nature")}</th>
+      <th>${translate("ui", "item")}</th>
+      <th>${translate("statLabels", "hp")}</th>
+      <th>${translate("ui", "attack")}</th>
+      <th>${translate("ui", "defense")}</th>
+      <th>${translate("statLabels", "spa")}</th>
+      <th>${translate("statLabels", "spd")}</th>
       <th>${translate("columns", "speed")}</th>
       <th>${translate("columns", "move1")}</th>
       <th>${translate("columns", "move2")}</th>
@@ -91,12 +92,12 @@ function getPokemonRowCells(mon, trainer, stats) {
     },
     translateEntity("items", mon.item),
 
-    { value: stats.hp, className: getEvClass(mon.evs.hp ?? 0), statKey: "hp" },
-    { value: stats.atk, className: getEvClass(mon.evs.atk ?? 0), statKey: "atk" },
-    { value: stats.def, className: getEvClass(mon.evs.def ?? 0), statKey: "def" },
-    { value: stats.spa, className: getEvClass(mon.evs.spa ?? 0), statKey: "spa" },
-    { value: stats.spd, className: getEvClass(mon.evs.spd ?? 0), statKey: "spd" },
-    { value: stats.spe, className: getEvClass(mon.evs.spe ?? 0), statKey: "spe" },
+    { value: formatBattleStat(stats.hp), className: getEvClass(mon.evs.hp ?? 0), statKey: "hp" },
+    { value: formatBattleStat(stats.atk), className: getEvClass(mon.evs.atk ?? 0), statKey: "atk" },
+    { value: formatBattleStat(stats.def), className: getEvClass(mon.evs.def ?? 0), statKey: "def" },
+    { value: formatBattleStat(stats.spa), className: getEvClass(mon.evs.spa ?? 0), statKey: "spa" },
+    { value: formatBattleStat(stats.spd), className: getEvClass(mon.evs.spd ?? 0), statKey: "spd" },
+    { value: formatBattleStat(stats.spe), className: getEvClass(mon.evs.spe ?? 0), statKey: "spe" },
 
     translateEntity("moves", mon.moves[0]),
     translateEntity("moves", mon.moves[1]),
@@ -161,8 +162,8 @@ function applyCellPresentation(td, cellData, index, mon) {
 }
 
 // Creates one table row for one Pokémon set.
-function createPokemonTableRow(mon, trainer, level) {
-  const stats = calculateStats(mon, trainer.ivTier, level);
+function createPokemonTableRow(mon, trainer, level, trainerIndex, showIv = false) {
+  const stats = calculateBattlePokemonStats(mon, level, trainer);
   const cells = getPokemonRowCells(mon, trainer, stats);
   const row = document.createElement("tr");
 
@@ -170,10 +171,22 @@ function createPokemonTableRow(mon, trainer, level) {
     const td = document.createElement("td");
     applyCellPresentation(td, cellData, index, mon);
     row.appendChild(td);
+    if (showIv && index === 1) {
+        const ivCell = document.createElement("td");
+        ivCell.textContent = getBattlePokemonIvLabel(mon, trainer);
+        row.appendChild(ivCell);
+    }
   });
 
+  if (isMonExcluded(mon, trainerIndex)) {
+      row.classList.add("pokemon-row-excluded");
+  }
+
   row.addEventListener("dblclick", () => {
-    selectSingleSetFromTable(mon);
+    if (isMonExcluded(mon, trainerIndex)) {
+        return;
+    }
+    selectSingleSetFromTable(mon, getOpponentSlotIndexForTrainerTable(trainerIndex));
   });
 
   return row;
@@ -184,62 +197,129 @@ function createPokemonTableRow(mon, trainer, level) {
 // Main trainer team rendering
 // ---------------------------------------------------------------------
 
-// Renders the selected trainer and all possible Pokémon sets.
-function renderTrainerTeam(trainer) {
-  const resultsContainer = dom.resultsContainer;
-  const trainerTitle = dom.trainerTitle;
-  const trainerInfo = dom.trainerInfo;
-  const pokemonTable = dom.pokemonResults;
-  const team = window.frontierTrainerTeams[trainer.poolId];
-
-  trainerTitle.textContent = getName(trainer);
-  trainerInfo.textContent = `${translate("ui", "iv")} : ${trainer.ivTier} — ${translate("ui", "pool")} : ${trainer.poolId.toUpperCase()}`;
-  pokemonTable.replaceChildren();
-
-  if (!team) {
-    const row = pokemonTable.insertRow();
-    const cell = row.insertCell();
-    cell.textContent = translate("ui", "noTeamFound");
-    dom.resultsContainer.hidden = false;
-    return;
-  }
-
-  const level = getSelectedLevel();
-  const availableMons = getTrainerMonsForLevel(trainer, level);
-  const tbody = document.createElement("tbody");
-
-  for (const mon of availableMons) {
-    const row = createPokemonTableRow(mon, trainer, level);
-    tbody.appendChild(row);
-  }
-
-  pokemonTable.append(createPokemonTableHead(), tbody);
-  dom.resultsContainer.hidden = false;
-  populateOpponentPokemonSelect(trainer);
-}
-
-function getTrainerMons(trainer) {
-  const team = window.frontierTrainerTeams[trainer.poolId];
-
-  if (!team) {
-    return [];
-  }
-
-  return team.setIds
-    .map((setId) => window.frontierMons[setId])
-    .filter(Boolean);
-}
-
-function selectTrainerAndRender(trainer) {
-    if (!trainer) {
+function renderTrainerPanel(trainerIndex) {
+    const trainer = getTrainerBattleState(trainerIndex).trainer;
+    const panel = dom.trainerPanels[trainerIndex];
+    panel.container.hidden = trainerIndex >= getActiveTrainerCount() || !trainer;
+    panel.table.replaceChildren();
+    panel.exclusions.container.hidden = !trainer;
+    if (panel.container.hidden) {
+        panel.title.textContent = "";
+        panel.info.textContent = "";
         return;
     }
+    panel.title.textContent = getName(trainer);
+    panel.info.textContent = getTrainerInfoText(trainer);
+    const tbody = document.createElement("tbody");
+    const level = getSelectedLevel();
+    for (const mon of getAvailableBattleMons(trainerIndex)) {
+        tbody.appendChild(createPokemonTableRow(mon, trainer, level, trainerIndex));
+    }
+    if (!trainer.team && !window.frontierTrainerTeams[trainer.poolId]) {
+        const cell = tbody.insertRow().insertCell();
+        cell.colSpan = 18;
+        cell.textContent = translate("ui", "noTeamFound");
+        panel.exclusions.container.hidden = true;
+    } else {
+        refreshBattleExclusionInterface(trainerIndex);
+    }
+    panel.table.append(createPokemonTableHead(), tbody);
+}
 
-    currentTrainer = trainer;
+function getTrainerInfoText(trainer) {
+    if (trainer.infoKey) { return translate("ui", trainer.infoKey); }
+    return `${translate("ui", "iv")} : ${getFacilityConfig().fixedIv ?? trainer.ivTier} — ` +
+        `${translate("ui", "pool")} : ${trainer.poolId.toUpperCase()}`;
+}
 
-    dom.trainerTextInput.value = getName(trainer);
-    dom.trainerSelect.value = trainer.id;
-    dom.trainerSuggestions.hidden = true;
+function renderBattleResults() {
+    closeHelpTooltip();
+    // Sync trainer-bound tools before their filters supply the table and details.
+    facilityTools[battleState.facility]?.refreshInfo?.();
+    const isMulti = battleState.format === "multi";
+    const primaryTrainer = getTrainerBattleState(0).trainer;
+    dom.resultsContainer.hidden = !Array.from({ length: getActiveTrainerCount() },
+        (_, index) => hasBattlePokemonSource(index)).some(Boolean);
+    dom.resultsContainer.classList.toggle("is-multi", isMulti);
+    dom.resultsContainer.classList.toggle("is-factory", isFactoryMode());
+    dom.singleTrainerHeader.hidden = isMulti;
+    dom.trainerTitle.textContent = isFactoryMode() ? translate("ui", "facilityFactory") :
+        primaryTrainer ? getName(primaryTrainer) : "";
+    const hasUndefinedIv = isFactoryMode() && (getAvailableBattleMons().some((mon) => mon.battleIv === null) ||
+        getFactoryPlayerTeamCandidateMons().some((mon) => mon.battleIv === null));
+    setHelpTooltip(document.getElementById("trainer-title-help"), hasUndefinedIv ? translate("ui", "factoryIvBugNote") : null);
+    dom.trainerInfo.textContent = isFactoryMode() ? getFactoryOverviewText() :
+        primaryTrainer ? getTrainerInfoText(primaryTrainer) : "";
+    dom.trainerPanels.forEach((panel, trainerIndex) => {
+        if (!isMulti) { panel.container.open = true; }
+        if (isFactoryMode()) { renderFactoryPanel(trainerIndex); }
+        else { renderTrainerPanel(trainerIndex); }
+    });
+    renderFactoryPlayerTeam();
+    refreshOpponentBattleInterface();
+    refreshSelectedOpponentViews();
+    updateTableSelectionHints();
+    updateSearchClearButtons();
+}
 
-    renderTrainerTeam(trainer);
+function getFactoryOverviewText() {
+    const series = getFacilityChallengeSeries();
+    return formatFacilityText("factoryOverview", {
+        series, tower: battleState.factory.towerSeries, level: getSelectedLevel()
+    });
+}
+
+function renderFactoryPanel(index) {
+    const panel = dom.trainerPanels[index];
+    const source = getBattlePokemonSource(index);
+    panel.container.hidden = !source;
+    panel.table.replaceChildren();
+    panel.exclusions.container.hidden = !source;
+    if (!source) { return; }
+    panel.title.textContent = translate("ui", "facilityFactory");
+    panel.info.textContent = getFactoryOverviewText();
+    panel.table.appendChild(createPokemonTableHead(true));
+    const mons = source.mons.filter((mon) => !isMonExcludedByFactoryPlayerTeam(mon));
+    for (const group of getFactoryBattleGroups(mons)) {
+        const tbody = document.createElement("tbody");
+        const row = document.createElement("tr");
+        row.className = "factory-pool-group-row";
+        const cell = document.createElement("th");
+        cell.colSpan = 19;
+        cell.textContent = `${translate("ui", group.key)} — ${getBattlePokemonIvLabel(group.mons[0])} IV — ${group.mons.length} ${translate("ui", "factoryPossibleSets")}`;
+        row.appendChild(cell);
+        tbody.appendChild(row);
+        for (const mon of group.mons) {
+            tbody.appendChild(createPokemonTableRow(mon, null, getSelectedLevel(), index, true));
+        }
+        panel.table.appendChild(tbody);
+    }
+    refreshBattleExclusionInterface(index);
+}
+
+function selectTrainerAndRender(trainer, trainerIndex = PRIMARY_TRAINER_SLOT_INDEX) {
+    if (!trainer || trainerIndex >= getActiveTrainerCount() ||
+        isTrainerSelectedInOtherSlot(trainer.id, trainerIndex)) {
+        return;
+    }
+    const trainerState = getTrainerBattleState(trainerIndex);
+    const slotDom = getTrainerSlotDom(trainerIndex);
+    // Selecting the same trainer again must not discard Pokémon or PP.
+    if (trainerState.trainer?.id !== trainer.id) {
+        resetTrainerBattleExclusions(trainerIndex);
+        getOpponentSlotIndexesForTrainer(trainerIndex).forEach(resetOpponentBattleState);
+        clearExcludedPokemonInput(trainerIndex);
+        clearExcludedItemInput(trainerIndex);
+    }
+    trainerState.trainer = trainer;
+    trainerState.suggestionMatches = [];
+    trainerState.suggestionActiveIndex = -1;
+    slotDom.input.value = getName(trainer);
+    slotDom.select.value = trainer.id;
+    slotDom.suggestions.hidden = true;
+    dom.trainerPanels[trainerIndex].container.open = true;
+    dom.trainerSlots.forEach((_, slotIndex) => {
+        populateTrainerSelect(slotIndex, getTrainerBattleState(slotIndex).trainer?.id ?? "");
+    });
+    renderBattleResults();
 }

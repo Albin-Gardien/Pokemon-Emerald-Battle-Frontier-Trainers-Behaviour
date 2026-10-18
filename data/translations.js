@@ -1,38 +1,403 @@
+"use strict";
+
 window.appTranslations = {
   ui: {
     pageTitle: { fr: "Pokémon Émeraude - Dresseurs de la Zone de Combat", en: "Pokémon Emerald - Frontier Trainer Viewer" },
+
     trainerLabel: { fr: "Sélectionnez un dresseur :", en: "Select a trainer:" },
+    trainerLabelMulti: { fr: "Sélectionnez les dresseurs :", en: "Select the trainers:" },
+    trainerSlot1: { fr: "Dresseur 1 :", en: "Trainer 1:" },
+    trainerSlot2: { fr: "Dresseur 2 :", en: "Trainer 2:" },
     trainerPlaceholder: { fr: "Nom du dresseur...", en: "Trainer name..." },
+    trainerSelectPlaceholder: { fr: "-- Sélectionnez un dresseur --", en: "-- Select a trainer --" },
+
+    playerTeamTitle: { fr: "Équipe", en: "Team" },
+    species: {"fr": "Espèce", "en": "Species"},
+    ability: {"fr": "Talent", "en": "Ability"},
+    nature: { fr: "Nature", en: "Nature" },
+    item: { fr: "Objet", en: "Item" },
+    pokemonSlot: {"fr": "Pokémon {slot}", "en": "Pokémon {slot}"},
+    attack: { fr: "Attaque", en: "Attack" },
+    defense: { fr: "Défense", en: "Defense" },
+    support: { fr: "Support", en: "Support" },
+
     iv: { fr: "IV", en: "IV" },
     pool: { fr: "Liste", en: "Pool" },
     levelLabel: { fr: "Niveau :", en: "Level:" },
     seriesFilterButton: { fr: "Filtrer par série", en: "Filter by series" },
     allSeries: { fr: "Toutes les séries", en: "All series" },
     selectedSeriesCount: { fr: "série(s)", en: "series" },
-    trainerSelectPlaceholder: {
-      fr: "-- Sélectionnez un dresseur --",
-      en: "-- Select a trainer --"
-    },
-    opponentPokemonSelectPlaceholder: {
-      fr: "-- Sélectionnez le Pokémon affronté --",
-      en: "-- Select the Pokémon you are battling --"
-    },
+
+    facilityModeLabel: { fr: "Mode", en: "Mode" },
+    facilityNormal: { fr: "Normal", en: "Normal" },
+    facilityPyramid: { fr: "Pyramide", en: "Pyramid" },
+    facilityPalace: { fr: "Palace", en: "Palace" },
+    facilityPike: { fr: "Reptile", en: "Pike" },
+    facilityDome: { fr: "Dôme", en: "Dome" },
+    facilityFactory: { fr: "Usine", en: "Factory" },
+    facilityComingSoon: { fr: "Disponible dans une prochaine mise à jour", en: "Available in a future update" },
+    battleFormatLabel: { fr: "Style", en: "Style" },
+    battleFormatSingles: { fr: "Solo", en: "Single" },
+    battleFormatDoubles: { fr: "Duo", en: "Double" },
+    battleFormatMulti: { fr: "Multi", en: "Multi" },
+
     opponentPokemonLabel: { fr: "Pokémon affronté :", en: "Opponent Pokémon:" },
+    opponentPokemonLabel1: { fr: "Pokémon affronté 1 :", en: "Opponent Pokémon 1:" },
+    opponentPokemonLabel2: { fr: "Pokémon affronté 2 :", en: "Opponent Pokémon 2:" },
     opponentPokemonPlaceholder: { fr: "Nom du Pokémon...", en: "Pokémon name..." },
+    opponentPokemonSelectPlaceholder: { fr: "-- Sélectionnez le Pokémon affronté --", en: "-- Select the Pokémon you are battling --" },
+    clearSearch: { fr: "Effacer la sélection", en: "Clear selection" },
+    helpLabel: { fr: "Afficher l’aide", en: "Show help" },
+    possibleSetsTitle: { fr: "Sets possibles", en: "Possible sets" },
+
     noTeamFound: { fr: "Aucune équipe trouvée pour ce dresseur.", en: "No team found for this trainer." },
     missingSet: { fr: "Set introuvable", en: "Missing set" },
+    tableSelectionHint: { fr: "Double-cliquez sur un set pour le sélectionner.", en: "Double-click a set to select it." },
+    tableSelectionHintDoubles: { fr: "Double-cliquez sur un set pour le Pokémon actif : {slot}.", en: "Double-click a set for the active Pokémon: {slot}." },
+    hiddenSets: { fr: "Masqué", en: "Hidden" },
+
     movesTitle: { fr: "Capacités :", en: "Moves:" },
     pp: { fr: "PP", en: "PP" },
     detailsTypes: { fr: "Types", en: "Types" },
     detailsAbilities: { fr: "Talents", en: "Abilities" },
-    detailsNature: { fr: "Nature", en: "Nature" },
-    detailsItem: { fr: "Objet", en: "Item" },
-  aiRoutineTitle: { fr: "Routine de l’IA", en: "AI Behaviour" },
-  aiRoutineMissingData: {
-      fr: "Aucune routine renseignée pour cette capacité.",
-      en: "No AI routine available for this move."
-  },
-    hiddenSets: { fr: "Masqué", en: "Hidden" }
+
+    aiRoutineTitle: { fr: "Routine de l’IA", en: "AI Behaviour" },
+    aiRoutineMissingData: { fr: "Aucune routine renseignée pour cette capacité.", en: "No AI routine available for this move." },
+    aiRoutineDoublesEnemyTitle: { fr: "IA Duo - cible adverse", en: "Doubles AI - enemy target" },
+    aiRoutineDoublesAllyTitle: { fr: "IA Duo - cible alliée", en: "Doubles AI - ally target" },
+    aiRoutineDoublesNote: {
+      fr: "Cible adverse : routine de base et règles Duo. Cible alliée : branche alliée seule. « Arrêt » termine la routine en cours.",
+      en: "Enemy target: base routine and Doubles rules. Ally target: ally branch only. “Terminate” ends the current routine."
+    },
+    pyramidSeriesLabel: { fr: "Série Pyramide :", en: "Pyramid round:" },
+    pyramidWildTitle: { fr: "Pyramide - Pokémon sauvages par étage", en: "Pyramid - wild Pokémon by floor" },
+    pyramidOverview: {
+      fr: "Série {series} · Liste sauvage {cycle}/20 · Dresseurs {start} à {end}",
+      en: "Round {series} · Wild pool {cycle}/20 · Trainers {start}–{end}"
+    },
+    pyramidProbabilityNote: {
+      fr: "Probabilités de base, avant les effets des talents.",
+      en: "Base probabilities before ability effects."
+    },
+    pyramidFloorTitle: { fr: "Étage {floor}", en: "Floor {floor}" },
+    pyramidAbility: { fr: "Talent : {abilities}", en: "Ability: {abilities}" },
+    pyramidAbilities: { fr: "Talents possibles : {abilities}", en: "Possible abilities: {abilities}" },
+    pyramidWildLevel: { fr: "Niv. {min}–{max}", en: "Lv. {min}–{max}" },
+    pyramidDataMissing: { fr: "Les données des Pokémon sauvages de la Pyramide ne sont pas chargées.", en: "Pyramid wild Pokémon data is not loaded." },
+
+    // Battle Dome: team selection, information-card filters and judging.
+    domeSeriesLabel: {"fr": "Série Dôme :", "en": "Dome round:"},
+    domeToolTitle: {"fr": "Dôme — Équipes et prédictions", "en": "Dome — Teams and predictions"},
+    domeToolHelp: {"fr": "Un tournoi comprend quatre combats. Les prédictions décrivent les deux Pokémon retenus parmi les trois de l'équipe adverse.", "en": "A tournament contains four battles. Predictions describe which two Pokémon are picked from the three on the opponent’s team."},
+    domePlayerHelp: {"fr": "Renseigne les trois espèces. Le troisième emplacement évalué par le jeu est un Pokémon vide de type Normal. Le calcul consulte toujours le premier talent de l’espèce.", "en": "Enter the three species. The third slot evaluated by the game is an empty Normal-type Pokémon. The calculation always reads the species’ first ability."},
+    domeOpponentTitle: {"fr": "Équipe adverse", "en": "Opponent’s team"},
+    domeOpponentHelp: {"fr": "Sélectionne le dresseur, puis son équipe dans l’ordre affiché avec les commentaires pour déterminer les probabilités de rencontrer chaque combinaison possible.", "en": "Select the trainer, then their team in the order shown with the comments to determine the probabilities of encountering each possible combination."},
+    domeKnownSet: {"fr": "Set connu", "en": "Known set"},
+    domeAllSets: {"fr": "Tous les sets possibles", "en": "All possible sets"},
+    domeInvalidSpecies: {"fr": "Choisis une espèce disponible, différente des autres Pokémon de cette équipe.", "en": "Choose an available species different from the other Pokémon in this team."},
+    domeChooseTrainer: {"fr": "Sélectionne un dresseur pour renseigner son équipe.", "en": "Select a trainer to enter their team."},
+    domeKnownMovesLabel: { fr: "Capacités connues", en: "Known moves" },
+    domeKnownMovesPlaceholder: { fr: "Chercher une capacité...", en: "Search move..." },
+    domeKnownMovesHelp: {
+      fr: "Jusqu’à 3 capacités révélées dans le tournoi. Chaque capacité doit appartenir à au moins un des trois sets adverses.",
+      en: "Up to 3 moves revealed during the tournament. Each move must belong to at least one of the three opposing sets."
+    },
+    domeBattleStyle: {"fr": "Commentaire — style", "en": "Comment — battle style"},
+    domeStatStyle: {"fr": "Commentaire — statistiques", "en": "Comment — stats"},
+    domeBattleStyleAny: {"fr": "Style non renseigné", "en": "Battle style not entered"},
+    domeStatStyleAny: {"fr": "Statistiques non renseignées", "en": "Stats not entered"},
+    domeStatEmphasizes: {"fr": "Favorise : {stats}", "en": "Emphasizes: {stats}"},
+    domeStatNeglects: {"fr": "Néglige : {stats}", "en": "Neglects: {stats}"},
+    domeStatBalanced: {"fr": "Répartition équilibrée", "en": "Well-balanced stats"},
+    domeResultsTitle: {"fr": "Prédictions par trio de sets", "en": "Predictions by set trio"},
+    domeResultsHelp: {"fr": "Résultats basés sur l'ensemble des calculs de probabilité. Chaque colonne correspond au choix des 2 Pokémon à envoyer au combat, avec un troisième Pokémon de type Normal.", "en": "Results based on all probability calculations. Each column corresponds to the choice of the 2 Pokémon to send into battle, along with a third Normal-type Pokémon."},
+    domeNeedOpponents: {"fr": "Renseigne les trois espèces de la fiche adverse.", "en": "Enter the three species on the opponent’s information card."},
+    domeNeedPlayers: {"fr": "Renseigne tes trois espèces pour comparer les trois duos possibles.", "en": "Enter your three species to compare all three possible pairs."},
+    domeNoTeams: {"fr": "Aucun trio de sets compatible. Vérifie les espèces, les sets, les commentaires et les capacités connues ; les objets d’une même équipe doivent être distincts.", "en": "No compatible set trio. Check the species, sets, comments and known moves; held items within a team must be distinct."},
+    domeResultCount: {"fr": "{count} trio(s) de sets compatible(s) · {duos} duo(s) du joueur comparé(s)", "en": "{count} compatible set trio(s) · {duos} player pair(s) compared"},
+    domeShowSet: {"fr": "Afficher ce set dans le détail des Pokémon", "en": "Show this set in Pokémon details"},
+    domeLeadOrder: {"fr": "Le premier Pokémon indiqué est le lead.", "en": "The first Pokémon shown is the lead."},
+    domeDuoOrder: {"fr": "En Duo, l’ordre indique les deux emplacements de départ.", "en": "In Doubles, the order indicates the two starting positions."},
+    domeOpponentOrder: {"fr": "Ordre adverse (1 → 2)", "en": "Opponent order (1 → 2)"},
+    domePlaceholderHelp: {"fr": "Ce duo est évalué avec un troisième emplacement vide de type Normal.", "en": "This pair is evaluated with an empty Normal-type third slot."},
+    domePage: {"fr": "Page {page} / {pages}", "en": "Page {page} / {pages}"},
+    domePrevious: {"fr": "Précédent", "en": "Previous"},
+    domeNext: {"fr": "Suivant", "en": "Next"},
+    domeTieTitle: {"fr": "Délibération en cas d’égalité", "en": "Judging a drawn battle"},
+    domeTieHelp: {"fr": "Le meilleur rang gagne la délibération contre un dresseur ordinaire. Takim remporte toujours une égalité, quel que soit le classement du joueur.", "en": "The best seed wins judging against an ordinary trainer. Tucker always wins a drawn battle, regardless of the player’s seed."},
+    domePlayerSeed: {"fr": "Rang du joueur", "en": "Player seed"},
+    domeOpponentSeed: {"fr": "Rang adverse", "en": "Opponent seed"},
+    domeUnknownSeed: {"fr": "Rang non renseigné", "en": "Seed not entered"},
+    domeTiePlayer: {"fr": "Délibération : victoire du joueur.", "en": "Judging: the player wins."},
+    domeTieOpponent: {"fr": "Délibération : victoire de l’adversaire.", "en": "Judging: the opponent wins."},
+    domeTieBrain: {"fr": "Délibération : Takim gagne toujours une égalité, quel que soit le classement.", "en": "Judging: Tucker always wins a drawn battle, regardless of seeding."},
+    domeTieUnknown: {"fr": "Renseigne les rangs connus pour déterminer le vainqueur de la délibération.", "en": "Enter the known seeds to determine who wins the judging."},
+    domeDataMissing: {"fr": "Les données du Dôme ne sont pas chargées.", "en": "The Dome data is not loaded."},
+    domeBrainSilverInfo: {"fr": "IV : 20 — Takim Argent : série 5, en Solo", "en": "IV: 20 — Silver Tucker: round 5, Singles"},
+    domeBrainGoldInfo: {"fr": "IV : 31 — Takim Or : série 10, puis 15, 20… après les deux symboles, en Solo", "en": "IV: 31 — Gold Tucker: round 10, then 15, 20… after both symbols, Singles"},
+    domeStyle0: {"fr": "N'hésite pas à prendre des risques.", "en": "Willing to risk total disaster at times."},
+    domeStyle1: {"fr": "Fait preuve d'endurance au combat.", "en": "Skilled at enduring long battles."},
+    domeStyle2: {"fr": "Change de tactique selon l’adversaire.", "en": "Varies tactics to suit the opponent."},
+    domeStyle3: {"fr": "Profil de gagnant très prononcé.", "en": "Has a tough winning pattern."},
+    domeStyle4: {"fr": "Utilise parfois de très rares attaques.", "en": "Occasionally uses a very rare move."},
+    domeStyle5: {"fr": "Aime faire sursauter et déranger.", "en": "Uses startling and disruptive moves."},
+    domeStyle6: {"fr": "Observe tout le temps les PV au combat.", "en": "Constantly watches HP in battle."},
+    domeStyle7: {"fr": "Stocke puis relâche de la puissance.", "en": "Good at storing then loosing power."},
+    domeStyle8: {"fr": "Sait bien affaiblir l’adversaire.", "en": "Skilled at enfeebling foes."},
+    domeStyle9: {"fr": "S'en remet souvent à la chance.", "en": "Prefers tactics that rely on luck."},
+    domeStyle10: {"fr": "Attaque avec une allure royale.", "en": "Attacks with a regal atmosphere."}, //Impossible without triggering domeStyle7
+    domeStyle11: {"fr": "Capacités puissantes à faibles PP", "en": "Attacks with powerful, low-PP moves."},
+    domeStyle12: {"fr": "Affaiblit d'abord, attaque ensuite.", "en": "Skilled at enfeebling, then attacking."},
+    domeStyle13: {"fr": "Grande résistance aux attaques.", "en": "Battles while enduring all attacks."},
+    domeStyle14: {"fr": "Aime énerver les ennemis.", "en": "Skilled at upsetting foes emotionally."},
+    domeStyle15: {"fr": "Capacités puissantes et directes.", "en": "Uses strong and straightforward moves."},
+    domeStyle16: {"fr": "Agressif, capacités puissantes.", "en": "Aggressively uses strong moves."},
+    domeStyle17: {"fr": "Se bat en esquivant les attaques.", "en": "Battles while cleverly dodging attacks."},
+    domeStyle18: {"fr": "Utilise des capacités déstabilisantes", "en": "Skilled at using upsetting attacks."}, //Impossible without triggering domeStyle8
+    domeStyle19: {"fr": "Aime les capacités connues.", "en": "Uses many popular moves."},
+    domeStyle20: {"fr": "Capacités aux combinaisons puissantes.", "en": "Has moves for powerful combinations."},
+    domeStyle21: {"fr": "Attaques à fort taux de réussite.", "en": "Uses high-probability attacks."},
+    domeStyle22: {"fr": "Capacités spectaculaires, agressif", "en": "Aggressively uses spectacular moves."},
+    domeStyle23: {"fr": "Préfère l’attaque à la défense.", "en": "Emphasizes offense over defense."},
+    domeStyle24: {"fr": "Préfère la défense à l’attaque.", "en": "Emphasizes defense over offense."}, //Impossible without triggering domeStyle17
+    domeStyle25: {"fr": "Attaque rapidement avec des capacités fortes.", "en": "Attacks quickly with strong moves."}, //Impossible without triggering domeStyle16
+    domeStyle26: {"fr": "Aime les capacités à effets ajoutés.", "en": "Often uses moves with added effects."},
+    domeStyle27: {"fr": "Eventail de capacités bien équilibré.", "en": "Uses a well-balanced mix of moves."},
+    domeSeed1: {"fr": "Meilleur candidat au titre!", "en": "The best candidate to be a champ!"},
+    domeSeed2: {"fr": "Ira au moins jusqu'en demi-finale.", "en": "A sure-finalist team."},
+    domeSeed3: {"fr": "Finira sûrement dans le trio gagnant.", "en": "A likely top-three finisher."},
+    domeSeed4: {"fr": "Candidat potentiel à la première place.", "en": "A candidate to finish first."},
+    domeSeed5: {"fr": "Équipe à très fort potentiel.", "en": "A team with top-class potential."},
+    domeSeed6: {"fr": "Équipe dont on ne sait rien.", "en": "The dark horse team this tournament."},
+    domeSeed7: {"fr": "Équipe au-dessus de la moyenne.", "en": "A better-than-average team."},
+    domeSeed8: {"fr": "Équipe dans la moyenne.", "en": "This tournament's average team."},
+    domeSeed9: {"fr": "Équipe à potentiel moyen.", "en": "A team with average potential."},
+    domeSeed10: {"fr": "Équipe en dessous de la moyenne.", "en": "A weaker-than-average team."},
+    domeSeed11: {"fr": "Équipe n'ayant encore jamais gagné.", "en": "A team looking for its first win."},
+    domeSeed12: {"fr": "Une victoire les rendrait très fiers.", "en": "One win will make this team proud."},
+    domeSeed13: {"fr": "Équipe assez faible dans l'ensemble.", "en": "Overall, a weak team."},
+    domeSeed14: {"fr": "Équipe au potentiel très faible.", "en": "A team with very low potential."},
+    domeSeed15: {"fr": "Équipe qui n'ira sûrement pas en finale.", "en": "A team unlikely to win the tournament."},
+    domeSeed16: {"fr": "Équipe au potentiel le plus faible.", "en": "The team most unlikely to win."},
+
+    palaceTeamHelp: {
+      fr: "Renseignez la nature et une à quatre capacités pour chaque Pokémon. Les deux colonnes représentent les comportements initial et de PV bas. Les PP épuisés sont exclus du tirage.",
+      en: "Enter a nature and one to four moves for each Pokémon. The two columns represent the initial and low-HP behaviours. Moves with no PP are excluded from the draw."
+    },
+    palaceMove: { fr: "Capacité {slot}", en: "Move {slot}" },
+    palacePpAvailable: { fr: "PP disponibles", en: "PP available" },
+    palaceEmptyMove: { fr: "Aucune capacité", en: "No move" },
+    palaceInvalidSpecies: { fr: "Choisissez une espèce de la liste.", en: "Choose a species from the list." },
+    palaceInvalidMove: { fr: "Choisissez une capacité de la liste, différente des autres.", en: "Choose a move from the list, different from the other moves." },
+    palaceClearPokemon: { fr: "Effacer ce Pokémon", en: "Clear this Pokémon" },
+    palaceClearMove: { fr: "Effacer la capacité {slot}", en: "Clear move {slot}" },
+    palaceBrainSilverInfo: {
+      fr: "IV : 16 - Équipe Argent",
+      en: "IV: 16 - Silver team"
+    },
+    palaceBrainGoldInfo: {
+      fr: "IV : 31 - Équipe Or",
+      en: "IV: 31 - Gold team"
+    },
+    palaceProbabilitiesTitle: { fr: "Choix au Palace", en: "Palace choices" },
+    palaceBehaviour: { fr: "Résultat", en: "Outcome" },
+    palaceInitial: { fr: "Initial", en: "Initial" },
+    palaceChanged: { fr: "PV bas activé", en: "Low HP activated" },
+    palaceSmartAttack: { fr: "Attaque · IA", en: "Attack · AI" },
+    palaceRandomAttack: { fr: "Attaque · aléatoire", en: "Attack · random" },
+    palaceNothing: { fr: "Aucune action", en: "No action" },
+    palaceTotalAttack: { fr: "Attaque totale", en: "Total attack" },
+    palaceEmptySet: { fr: "Renseignez au moins une capacité.", en: "Enter at least one move." },
+    palaceDataMissing: { fr: "Les données du Palace sont manquantes ou incomplètes.", en: "Palace data is missing or incomplete." },
+    palaceProbabilityHelp: {
+      fr: "L’IA choisit parmi les capacités avec des PP de la catégorie tirée : Attaque, Défense ou Support. Si la catégorie est absente, une attaque au hasard sera sélectionnée 1 fois sur 2. Les pourcentages décrivent la sélection, avant tout statut ou restriction de capacité/objet.",
+      en: "The AI chooses among moves with PP in the drawn group: Attack, Defense or Support. If that group is absent, a random attack will be selected half the time. These percentages describe selection before any status or move/item restriction."
+    },
+    palaceHpHelp: {
+      fr: "Le comportement initial s’applique tant que celui de PV bas n’a pas été activé. Le comportement de PV bas s’active à 50 % des PV ou moins, lorsque le Pokémon n’est pas endormi et n’est pas K.O. Il reste actif même après un soin, jusqu’au prochain changement de Pokémon.",
+      en: "Initial behaviour applies until low-HP behaviour has been activated. Low-HP behaviour activates at 50% HP or less while the Pokémon is awake and not fainted. It stays active after healing until the next switch."
+    },
+    palaceAiNote: {
+      fr: "Ces routines interviennent lorsqu’une catégorie possédant une capacité avec des PP est tirée. Elles servent pour les deux joueurs.",
+      en: "These routines apply when a group with a move that has PP is drawn. They apply for both players."
+    },
+    palaceTargetStronger: { fr: "Duo : cible avec le plus de PV actuels", en: "Double: target with more current HP" },
+    palaceTargetWeaker: { fr: "Duo : cible avec le moins de PV actuels", en: "Double: target with less current HP" },
+    palaceTargetRandom: { fr: "Duo : cible au hasard", en: "Double: random target" },
+    palaceTargetHelp: {
+      fr: "Pour les capacités à cible adverse unique, le Pokémon choisit la cible selon la nature, en comparant les PV actuels en valeur brute. En cas d’égalité, le choix est aléatoire.",
+      en: "For single-foe targeted moves, the Pokémon chooses a target according to nature, comparing raw current HP. Ties are random."
+    },
+
+    pikeSeriesLabel: { fr: "Série Reptile :", en: "Pike round:" },
+    pikeRoomsTitle: { fr: "Reptile - état de l’équipe et probabilités des salles", en: "Pike - team condition and room probabilities" },
+    pikeRoomsHelp: { fr: "Renseigne l’état de l’équipe à l’entrée de la salle de choix. L’indice décrit une porte. Son groupe entier est exclu des deux autres portes.", en: "Enter your team’s condition on entering the choice room. The hint describes one door. Its entire event group is excluded from the other two doors." },
+    pikeTeamHelp: { fr: "Un soin peut restaurer les PV, les PP, les statuts et les Pokémon K.O. Les salles de soin sont désactivées seulement si les trois Pokémon n’ont besoin d’aucun de ces soins.", en: "Healing restores HP, PP and status, and revives fainted Pokémon. Healing rooms are disabled only when none of the three Pokémon needs any of this care." },
+    pikeHealthLabel: { fr: "Santé", en: "Health" },
+    pikeHealthFull: { fr: "PV au maximum", en: "Full HP" },
+    pikeHealthInjured: { fr: "PV réduits", en: "Reduced HP" },
+    pikeHealthKo: { fr: "K.O.", en: "Fainted" },
+    pikeStatusLabel: { fr: "Statut", en: "Status" },
+    pikeStatusNone: { fr: "Aucun", en: "None" },
+    pikeStatusPoison: { fr: "Poison", en: "Poison" },
+    pikeStatusToxic: { fr: "Poison grave", en: "Bad poison" },
+    pikeStatusFreeze: { fr: "Gel", en: "Freeze" },
+    pikeStatusParalysis: { fr: "Paralysie", en: "Paralysis" },
+    pikeStatusSleep: { fr: "Sommeil", en: "Sleep" },
+    pikeStatusBurn: { fr: "Brûlure", en: "Burn" },
+    pikePpFull: { fr: "PP au maximum", en: "Full PP" },
+    pikeTeamHealed: { fr: "Équipe entièrement soignée", en: "Fully heal team" },
+    pikeRoomLabel: { fr: "Prochaine salle", en: "Next room" },
+    pikeRoomNumber: { fr: "Salle {room} / 14", en: "Room {room} / 14" },
+    pikeRoomHelp: { fr: "Sélectionne la salle paire à venir. Le statut vise au maximum 1 Pokémon aux salles 2–4, 2 aux salles 6–8, puis 3 aux salles 10–14.", en: "Select the upcoming even-numbered room. Status targets at most 1 Pokémon in rooms 2–4, 2 in rooms 6–8, then 3 in rooms 10–14." },
+    pikeHintLabel: { fr: "Indice donné", en: "Given hint" },
+    pikeHintUnknown: { fr: "- Indice non renseigné -", en: "- Hint not entered -" },
+    pikeHint_people: { fr: "Présence de personnes", en: "Presence of people" },
+    pikeHint_whispering: { fr: "Murmures", en: "Whispering" },
+    pikeHint_pokemon: { fr: "Odeur de Pokémon", en: "Aroma of Pokémon" },
+    pikeHint_nostalgia: { fr: "Nostalgie", en: "Nostalgia" },
+    pikeHint_brain: { fr: "Charline - présence menaçante", en: "Lucy - dreadful presence" },
+    pikeHintHelp: { fr: "Les libellés résument les quatre indices. Sans indice renseigné, les probabilités incluent tous les indices possibles.", en: "The labels summarise the four hints. Without an entered hint, probabilities include all possible hints." },
+    pikeProbabilitiesTitle: { fr: "Probabilités par porte", en: "Probabilities per door" },
+    pikeProbabilityHelp: { fr: "« À indice » : porte annoncée. « Autre » : chacune des deux autres portes, avec la même probabilité. Statut et Multi impossibles deviennent une salle sans événement pour la porte à indice ; ils sont retirés avant le tirage des autres portes.", en: "“Hinted”: the announced door. “Other”: each of the other two doors, with the same probability. Impossible status and Multi events become an empty room at the hinted door; they are removed before drawing for other doors." },
+    pikeFullyHealedBugHelp: { fr: "Un bug retire le Solo difficile et le combat Multi du tirage de la porte à indice si l'équipe est entièrement soignée. Pour les autres portes, le groupe de l’indice est exclu.", en: "A bug omits Hard Single and Multi battle from the hinted-door draw if the team is fully healed. The other doors exclude the hint’s group." },
+    pikeEventLabel: { fr: "Événement", en: "Event" },
+    pikeDoorHinted: { fr: "À indice", en: "Hinted" },
+    pikeDoorOther: { fr: "Autre", en: "Other" },
+    pikeEventSingle: { fr: "Solo sans soin", en: "Single, no healing" },
+    pikeEventHealFull: { fr: "Soin de toute l’équipe", en: "Heal the whole team" },
+    pikeEventNpc: { fr: "PNJ sans événement", en: "NPC, no event" },
+    pikeEventStatus: { fr: "Statut aléatoire", en: "Random status" },
+    pikeEventHealPart: { fr: "Soin de 1 ou 2 Pokémon", en: "Heal 1 or 2 Pokémon" },
+    pikeEventWild: { fr: "Pokémon sauvages", en: "Wild Pokémon" },
+    pikeEventHard: { fr: "Solo difficile + soin", en: "Hard Single + healing" },
+    pikeEventMulti: { fr: "Multi : 2 dresseurs", en: "Multi: 2 trainers" },
+    pikeHealFullHelp: { fr: "Tous les Pokémon sont entièrement soignés, y compris les K.O.", en: "All Pokémon are fully healed, including fainted Pokémon." },
+    pikeHealPartHelp: { fr: "Tirage de 1 ou 2 soins, à 50 % chacun. Seuls les Pokémon qui ont besoin de soins comptent ; les K.O. peuvent être réanimés.", en: "One or two heals are drawn, with a 50% chance each. Only Pokémon needing care count; fainted Pokémon can be revived." },
+    pikeStatusHelp: { fr: "Jusqu’à {count} Pokémon debout sans statut. Tirage initial : poison grave 35 %, gel 25 %, paralysie 20 %, sommeil 10 %, brûlure 10 %. Les types peuvent relancer ce tirage ; les talents peuvent ensuite bloquer l’effet.", en: "Up to {count} living Pokémon with no status. Initial draw: bad poison 35%, freeze 25%, paralysis 20%, sleep 10%, burn 10%. Types can cause a redraw; abilities can then block the effect." },
+    pikeHardHelp: { fr: "Un dresseur de la liste difficile, en Solo 3 contre 3. Toute l’équipe est soignée après la victoire.", en: "One trainer from the hard range, in a 3-on-3 Single battle. Your whole team is healed after victory." },
+    pikeMultiHelp: { fr: "Deux dresseurs avec un Pokémon chacun. Utilise le style Multi pour afficher les deux listes. Cet événement est impossible avec moins de deux Pokémon debout.", en: "Two trainers with one Pokémon each. Use Multi style to show both pools. This event is unavailable with fewer than two living Pokémon." },
+    pikeTeamEnded: { fr: "Aucun Pokémon debout : la série est terminée.", en: "No living Pokémon: the challenge is over." },
+    pikeHintImpossible: { fr: "Cet indice est incompatible avec l’état saisi. Vérifie l’état de l’équipe au moment où l’indice a été généré, notamment les PP.", en: "This hint is incompatible with the entered condition. Check the team’s condition when the hint was generated, including PP." },
+    pikeBossTitle: { fr: "Charline - soins avant le combat", en: "Lucy - healing before battle" },
+    pikeBossForced: { fr: "Combat Solo contre Charline : 100 % pour chaque porte.", en: "Single battle against Lucy: 100% at every door." },
+    pikeBossHealedCount: { fr: "{count} Pokémon soigné(s)", en: "{count} Pokémon healed" },
+    pikeBossHelp: { fr: "Chaque porte tire 0, 1 ou 2 soins à environ 33,3 % chacun. Le nombre réellement soigné est limité aux Pokémon qui en ont besoin. L’ordre des portes est caché ; aucune ne peut être recommandée à l’avance.", en: "Each door draws 0, 1 or 2 heals at about 33.3% each. The number actually healed is limited to Pokémon needing care. Door order is hidden; no door can be recommended in advance." },
+    pikeDataMissing: { fr: "Les données des salles du Reptile ne sont pas chargées.", en: "Pike room data is not loaded." },
+
+    factorySeriesLabel: { fr: "Série Usine :", en: "Factory round:" },
+    factoryTowerSeriesLabel: { fr: "Série Tour (niv. 50) :", en: "Tower round (Lv. 50):" },
+    factorySwapsLabel: { fr: "Échanges cumulés :", en: "Total swaps:" },
+    factoryBrainLabel: { fr: "Sam au 7ᵉ combat", en: "Noland in battle 7" },
+    factoryControlsHint: {
+      fr: "{rank}/6 locations améliorées proposées, selon le total d’échanges dans ce style et ce niveau.",
+      en: "{rank}/6 upgraded rentals offered, based on total swaps in this format and level."
+    },
+    factoryTowerHelp: {
+      fr: "Les IV adverses utilisent la série Tour de Combat en niveau 50 dans le même style, même à l’Usine niveau 100. Sam suit sa propre règle.",
+      en: "Opponent IVs use the level-50 Tower round in the same format, even in level-100 Factory battles. Noland follows a separate rule."
+    },
+    factorySeriesHelp: {
+      fr: "La série fixe les sets disponibles et les IV des locations. Les locations améliorées utilisent la série suivante.",
+      en: "The round determines available sets and rental IVs. Upgraded rentals use the next round."
+    },
+    factoryBrainHelp: {
+      fr: "Sam peut apparaître au 7ᵉ combat Solo, aux séries multiples de 3, selon tes symboles. Décoche s’il n’apparaît pas.",
+      en: "Noland may appear in battle 7 of Singles rounds divisible by 3, depending on your symbols. Uncheck if he is not appearing."
+    },
+    factoryPlayerPokemon1: { fr: "Pokémon 1 :", en: "Pokémon 1:" },
+    factoryPlayerPokemon2: { fr: "Pokémon 2 :", en: "Pokémon 2:" },
+    factoryPlayerPokemon3: { fr: "Pokémon 3 :", en: "Pokémon 3:" },
+    factoryPlayerPokemonPlaceholder: { fr: "Nom, set ou IV...", en: "Name, set or IV..." },
+    factoryOrigin: { fr: "Provenance", en: "Origin" },
+    factoryOrigin_rental: { fr: "Location", en: "Rental" },
+    factoryOrigin_trade: { fr: "Échange", en: "Swap" },
+    factoryOrigin_upgrade: { fr: "Location améliorée", en: "Upgraded rental" },
+    factoryIvRandom: { fr: "Aléatoires (0–31)", en: "Random (0–31)" },
+    factoryIvUndefined: { fr: "Indéterminés (0–31)", en: "Unknown (0–31)" },
+    factoryIvBugNote: {
+      fr: "Bug des IV : valeur inconnue, statistiques affichées en plage.",
+      en: "IV bug: unknown values; statistics shown as ranges."
+    },
+    factoryOverview: {
+      fr: "Série Usine {series} · Niveau {level} · Série Tour {tower}",
+      en: "Factory round {series} · Level {level} · Tower round {tower}"
+    },
+    factoryBattles1To6: { fr: "Combats 1 à 6", en: "Battles 1–6" },
+    factoryBattle7: { fr: "Combat 7", en: "Battle 7" },
+    factoryBattle7Boss: { fr: "Combat 7 - Sam", en: "Battle 7 - Noland" },
+    factoryBattles1To7: { fr: "Combats 1 à 7", en: "Battles 1–7" },
+    factoryPossibleSets: { fr: "sets possibles", en: "possible sets" },
+    factoryDataMissing: { fr: "Les données des pools de l’Usine ne sont pas chargées (data/factory_pools.js).", en: "Factory pool data is not loaded (data/factory_pools.js)." },
+
+    // Factory AI: hide the normal accordion when its routines do not apply.
+    factoryAiRandomTitle: { fr: "IA aléatoire", en: "Random AI" },
+    factoryAiBasicTitle: { fr: "IA basique", en: "Basic AI" },
+    factoryAiRandom: {
+      fr: "Séries 1–2 : choix aléatoire des capacités.",
+      en: "Rounds 1–2: random move selection."
+    },
+    factoryAiBasic: {
+      fr: "Séries 3–4 : IA basique, limitée aux vérifications des mauvais choix de capacités.",
+      en: "Rounds 3–4: basic AI, limited to bad-move checks."
+    },
+    factoryAiMixed: {
+      fr: "Routine applicable à Sam uniquement. Les adversaires des combats 1 à 6 utilisent l’IA basique.",
+      en: "This routine applies only to Noland. Opponents in battles 1–6 use basic AI."
+    },
+    factoryAiDoublesNote: {
+      fr: "En Duo, les vérifications du combat double restent actives.",
+      en: "Doubles-specific checks remain active."
+    },
+    // Factory hints: reference lists, without filtering individual sets.
+    factoryHintsTitle: { fr: "Usine - indices sur l’équipe adverse", en: "Factory - opponent team hints" },
+    factoryHintsMissing: { fr: "Les données des indices de l’Usine ne sont pas chargées (data/factory_hints.js).", en: "Factory hint data is not loaded (data/factory_hints.js)." },
+    factoryHintStyleLabel: { fr: "Indice sur les capacités", en: "Move strategy hint" },
+    factoryHintTypeLabel: { fr: "Indice sur le type", en: "Type hint" },
+    factoryHintUnknown: { fr: "- Choisir l’indice -", en: "- Choose a hint -" },
+    factoryHintNoType: { fr: "Aucun type préféré", en: "No type favourites" },
+    factoryHintStyle0: { fr: "Libre d'esprit", en: "Unrestrained" },
+    factoryHintStyle1: { fr: "Importance à la préparation", en: "Preparation" },
+    factoryHintStyle2: { fr: "Lente et régulière", en: "Slow and steady" },
+    factoryHintStyle3: { fr: "Requièrent de l'endurance", en: "Endurance" },
+    factoryHintStyle4: { fr: "Risquer gros pour gagner gros", en: "High risk, high return" },
+    factoryHintStyle5: { fr: "Affaiblir l'ennemi", en: "Weakening the foe" },
+    factoryHintStyle6: { fr: "Impossible à prévoir", en: "Unpredictable" },
+    factoryHintStyle7: { fr: "Suivre le mouvement", en: "Battle flow" },
+    factoryHintStyle8: { fr: "Adaptable", en: "Flexible" },
+    factoryHintThreshold: {
+      fr: "Au moins {count} capacités de cette liste dans l’équipe adverse.",
+      en: "At least {count} moves from this list on the opponent’s team."
+    },
+    factoryHintNoneResult: { fr: "Aucune des sept catégories n’atteint son seuil.", en: "None of the seven categories reaches its threshold." },
+    factoryHintFlexibleResult: { fr: "Au moins trois catégories atteignent leur seuil.", en: "At least three categories reach their thresholds." },
+    factoryHintStrategyHelp: {
+      fr: "Les 12 capacités de l’équipe sont comptées, répétitions incluses. Pour 1 ou 2 catégories valides, la dernière dans l’ordre du menu est annoncée ; dès 3, l’indice est « {flexible} ». Aucun set n’est filtré.",
+      en: "All 12 move slots count, including repeats. With 1 or 2 qualifying categories, the last in menu order is announced; from 3, the hint is “{flexible}”. Sets are not filtered."
+    },
+    factoryHintSnatchHelp: {
+      fr: "Saisie figure dans deux listes, mais compte uniquement pour « {style} ».",
+      en: "Snatch appears in two lists but counts only towards “{style}”."
+    },
+    factoryHintTypeHelp: {
+      fr: "Chaque Pokémon compte pour chacun de ses types distincts. L’indice annonce le plus fréquent sans égalité ; sinon, « Aucun type préféré ».",
+      en: "Each Pokémon counts once for each distinct type. The uniquely most common type is announced; ties give “No type favourites”."
+    },
+    factoryHintTypeResult: {
+      fr: "{type} : au moins 2 Pokémon, sans égalité entre les types.",
+      en: "{type}: at least 2 Pokémon; uniquely the most common type."
+    },
+    factoryHintNoTypeResult: {
+      fr: "Plusieurs types sont ex æquo.",
+      en: "The most-common types are tied."
+    },
+
+    // Battle exclusions
+    excludedPokemonLabel: { fr: "Pokémon sortis", en: "Seen Pokémon" },
+    excludedItemLabel: { fr: "Objets sortis", en: "Seen items" },
+    excludedPokemonPlaceholder: { fr: "Chercher un Pokémon...", en: "Search Pokémon..." },
+    excludedItemPlaceholder: { fr: "Chercher un objet...", en: "Search item..." },
+
   },
 
   columns: {
@@ -42,15 +407,7 @@ window.appTranslations = {
     type2: { fr: "Type 2", en: "Type 2" },
     ability1: { fr: "Talent 1", en: "Ability 1" },
     ability2: { fr: "Talent 2", en: "Ability 2" },
-    nature: { fr: "Nature", en: "Nature" },
-    item: { fr: "Objet", en: "Item" },
-    hp: { fr: "PV", en: "HP" },
-    attack: { fr: "Attaque", en: "Attack" },
-    defense: { fr: "Défense", en: "Defense" },
-    spAtk: { fr: "Atq. Spé", en: "Sp. Atk" },
-    spDef: { fr: "Déf. Spé", en: "Sp. Def" },
     speed: { fr: "Vitesse", en: "Speed" },
-    iv: { fr: "IV", en: "IV" },
     move1: { fr: "Capacité 1", en: "Move 1" },
     move2: { fr: "Capacité 2", en: "Move 2" },
     move3: { fr: "Capacité 3", en: "Move 3" },

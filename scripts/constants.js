@@ -129,30 +129,90 @@ const itemSpriteMap = {
 const dom = {
     pageTitle: document.getElementById("page-title"),
     languageToggle: document.getElementById("language-toggle"),
-
     trainerForm: document.getElementById("trainer-form"),
     trainerLabel: document.getElementById("trainer-label"),
-    trainerTextInput: document.getElementById("trainer-text-input"),
-    trainerSuggestions: document.getElementById("trainer-suggestions"),
-    trainerSelect: document.getElementById("trainer-select"),
-
+    trainerSelectorsContainer: document.getElementById("trainer-selectors-container"),
     levelLabel: document.getElementById("level-label"),
     levelInput: document.getElementById("level-input"),
-
     seriesFilterDropdown: document.querySelector(".series-filter-dropdown"),
     seriesFilterButton: document.getElementById("series-filter-button"),
     seriesFilterMenu: document.getElementById("series-filter-menu"),
-
+    facilitySeriesField: document.getElementById("facility-series-field"),
+    facilitySeriesLabel: document.getElementById("facility-series-label"),
+    facilitySeriesInput: document.getElementById("facility-series-input"),
+    facilityInfoPanel: document.getElementById("facility-info-panel"),
+    facilityInfoTitle: document.getElementById("facility-info-title"),
+    facilityInfoContent: document.getElementById("facility-info-content"),
+    factoryControls: {
+        container: document.getElementById("factory-controls"),
+        towerInput: document.getElementById("factory-tower-series-input"),
+        swapsInput: document.getElementById("factory-swaps-input"),
+        brainField: document.getElementById("factory-brain-field"),
+        brainInput: document.getElementById("factory-brain-input"),
+        hint: document.getElementById("factory-controls-hint")
+    },
+    factoryPlayerTeam: {
+        container: document.getElementById("factory-player-team"),
+        title: document.getElementById("factory-player-team-title"),
+        slots: [0, 1, 2].map((index) => ({
+            container: document.getElementById(`factory-player-slot-${index}`),
+            label: document.getElementById(`factory-player-label-${index}`),
+            input: document.getElementById(`factory-player-input-${index}`),
+            suggestions: document.getElementById(`factory-player-suggestions-${index}`),
+            details: document.getElementById(`factory-player-details-${index}`),
+            clearButton: document.getElementById(`factory-player-clear-button-${index}`)
+        }))
+    },
+    facilityModeInputs: document.querySelectorAll('input[name="facility-mode"]'),
+    battleFormatInputs: document.querySelectorAll('input[name="battle-format"]'),
     resultsContainer: document.getElementById("results-container"),
+    singleTrainerHeader: document.getElementById("single-trainer-header"),
     trainerTitle: document.getElementById("trainer-title"),
     trainerInfo: document.getElementById("trainer-info"),
-    pokemonResults: document.getElementById("pokemon-results"),
-
     opponentSearchContainer: document.getElementById("opponent-search-container"),
-    opponentPokemonLabel: document.getElementById("opponent-pokemon-label"),
-    opponentPokemonInput: document.getElementById("opponent-pokemon-input"),
-    opponentPokemonSuggestions: document.getElementById("opponent-pokemon-suggestions"),
-    opponentPokemonSelect: document.getElementById("opponent-pokemon-select"),
-
-    selectedPokemonDetails: document.getElementById("selected-pokemon-details")
+    trainerSlots: [0, 1].map((slotIndex) => {
+        const suffix = slotIndex === 0 ? "" : "-2";
+        return {
+            container: document.getElementById(`trainer-slot-${slotIndex}`),
+            label: document.getElementById(`trainer-slot-label-${slotIndex}`),
+            input: document.getElementById(`trainer-text-input${suffix}`),
+            select: document.getElementById(`trainer-select${suffix}`),
+            suggestions: document.getElementById(`trainer-suggestions${suffix}`),
+            clearButton: document.getElementById(`trainer-clear-button${suffix}`)
+        };
+    }),
+    opponentSlots: [0, 1].map((slotIndex) => {
+        const suffix = slotIndex === 0 ? "" : "-2";
+        return {
+            container: document.getElementById(`opponent-slot-${slotIndex}`),
+            label: document.getElementById(`opponent-pokemon-label${suffix}`),
+            input: document.getElementById(`opponent-pokemon-input${suffix}`),
+            select: document.getElementById(`opponent-pokemon-select${suffix}`),
+            suggestions: document.getElementById(`opponent-pokemon-suggestions${suffix}`),
+            clearButton: document.getElementById(`opponent-pokemon-clear-button${suffix}`),
+            details: document.getElementById(`selected-pokemon-details${suffix}`)
+        };
+    }),
+    trainerPanels: [0, 1].map((trainerIndex) => {
+        const suffix = trainerIndex === 0 ? "" : "-2";
+        return {
+            container: document.getElementById(`trainer-panel-${trainerIndex}`),
+            title: document.getElementById(`trainer-panel-title-${trainerIndex}`),
+            info: document.getElementById(`trainer-panel-info-${trainerIndex}`),
+            table: document.getElementById(`pokemon-results${suffix}`),
+            exclusions: {
+                container: document.getElementById(`battle-exclusions-container${suffix}`),
+                excludedPokemonField: document.getElementById(`excluded-pokemon-field${suffix}`),
+                excludedItemField: document.getElementById(`excluded-item-field${suffix}`),
+                excludedPokemonLabel: document.getElementById(`excluded-pokemon-label${suffix}`),
+                excludedPokemonInput: document.getElementById(`excluded-pokemon-input${suffix}`),
+                excludedPokemonTags: document.getElementById(`excluded-pokemon-tags${suffix}`),
+                excludedPokemonSuggestions: document.getElementById(`excluded-pokemon-suggestions${suffix}`),
+                excludedItemLabel: document.getElementById(`excluded-item-label${suffix}`),
+                excludedItemInput: document.getElementById(`excluded-item-input${suffix}`),
+                excludedItemTags: document.getElementById(`excluded-item-tags${suffix}`),
+                excludedItemSuggestions: document.getElementById(`excluded-item-suggestions${suffix}`)
+            }
+        };
+    })
 };
