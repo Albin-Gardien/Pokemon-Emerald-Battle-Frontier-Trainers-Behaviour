@@ -60,7 +60,6 @@ window.appTranslations = {
     pp: { fr: "PP", en: "PP" },
     detailsTypes: { fr: "Types", en: "Types" },
     detailsAbilities: { fr: "Talents", en: "Abilities" },
-<<<<<<< HEAD
 
     aiRoutineTitle: { fr: "Routine de l’IA", en: "AI Behaviour" },
     aiRoutineMissingData: { fr: "Aucune routine renseignée pour cette capacité.", en: "No AI routine available for this move." },
